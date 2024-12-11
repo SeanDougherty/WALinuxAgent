@@ -1,14 +1,59 @@
-To test live agent:
+## Testing the Live Agent
 
-1. provision an Azure Linux 3.0 VM in Azure
-2. From the ~/ dir of your VM, clone this repo and checkout this branch
-3. `cd WALinuxAgent`
-4. open a second terminal and also ssh into this vm
-5. from the second terminal, run `sudo journalctl -f -u waagent` to follow (-f) the unit's (-u) logs. Keep this up on a separate monitor while we work.
-6. from the first terminal, where you are cd'd into WALinuxAgent: `python3 setup.py build`
-7. After this succeeds run `python3 setup.py install --force`
-8. You have now updated all of the live VM's waagent files, we now need to restart the service so the processes use these new files. `sudo systemctl restart waagent`
-9. Watch your second terminal to see updates get printed to log.
-10. To test changes, update the files in `~/WALinuxAgent` and then run steps 6-8.
-11. To test adding an extension, `az vm extension set --resource-group %YOUR_RG% --vm-name %YOUR_VM% --name customScript --publisher Microsoft.Azure.Extensions --settings '{"commandToExecute": "echo \"hello world\""}'`
-12. To test removing an extension, `az vm extension delete --resource-group %YOUR_RG% --vm-name %YOUR_VM% --name customScript`
+### Prerequisites:
+- Provision an Azure Linux 3.0 VM in Azure
+
+### Steps:
+
+1. **Clone the Repository:**
+   - SSH into your Azure VM.
+   - Navigate to the `~` directory and clone the repository. Checkout the appropriate branch:
+     ```sh
+     git clone https://github.com/SeanDougherty/WALinuxAgent
+     cd WALinuxAgent
+     git checkout traced
+     ```
+
+2. **Monitor the Agent Logs:**
+   - Open a second terminal and SSH into the same VM.
+   - In the second terminal, run the following command to follow the agent logs:
+     ```sh
+     sudo journalctl -f -u waagent
+     ```
+   - Keep this terminal open on a separate monitor for real-time log updates.
+
+3. **Build and Install the Agent:**
+   - In the first terminal, after navigating to the `WALinuxAgent` directory:
+   - Build the project:
+     ```sh
+     python3 setup.py build
+     ```
+   - Once the build succeeds, install the agent:
+     ```sh
+     python3 setup.py install --force
+     ```
+   - Restart the waagent service to apply the new files:
+     ```sh
+     sudo systemctl restart waagent
+     ```
+
+4. **Verify the Changes:**
+   - Watch the second terminal for log updates to verify the waagent service restart.
+
+5. **Test Changes:**
+   - To make and test changes, update the files in the `~/WALinuxAgent` directory.
+   - Repeat steps 3 to 4.
+
+6. **Test Extensions:**
+
+   - **Add an Extension:**
+     ```sh
+     az vm extension set --resource-group <YOUR_RESOURCE_GROUP> --vm-name <YOUR_VM_NAME> --name customScript --publisher Microsoft.Azure.Extensions --settings '{"commandToExecute": "echo \"hello world\""}'
+     ```
+   
+   - **Remove an Extension:**
+     ```sh
+     az vm extension delete --resource-group <YOUR_RESOURCE_GROUP> --vm-name <YOUR_VM_NAME> --name customScript
+     ```
+
+Replace `<YOUR_RESOURCE_GROUP>`, and `<YOUR_VM_NAME>` with the actual values.
