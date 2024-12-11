@@ -1302,6 +1302,7 @@ class ExtHandlerInstance(object):
         self.logger.info("Initializing extension {0}".format(self.get_full_name()))
 
         self.logger.info("[sdou] waiting 5 minutes...")
+        self.logger.info("[sdou] a large number of sleeps are added during 'initalize' so that you may watch live (via a separate terminal) how the /var/lib/waagent/<extension_dir> changes throughout initialization")
         time.sleep(300)
 
         self.logger.info(f"[sdou] # Add user execute permission to all files under the base dir: {self.get_base_dir()}")
