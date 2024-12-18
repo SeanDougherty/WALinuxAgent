@@ -727,18 +727,19 @@ class ExtHandlersHandler(object):
     @staticmethod
     @trace
     def __setup_new_handler(ext_handler_i, extension):
-        logger.info("[sdou] 1")
-        logger.info("[sdou] 1")
         name = ext_handler_i.get_extension_full_name(extension)
-        logger.info("[sdou] 1")
         ext_handler_i.logger.info(f"[sdou] Extension full name is: {name}")
-        logger.info("[sdou] 1")
-        ext_handler_i.logger.info(f"[sdou] Extension object is: {extension}")
-        logger.info("[sdou] 1")
-        ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
-        ext_handler_i.download()
-        ext_handler_i.initialize()
-        ext_handler_i.update_settings(extension)
+        if name == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] heya hi")
+            ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
+            ext_handler_i.download()
+            ext_handler_i.initialize()
+            ext_handler_i.update_settings(extension)
+        else:
+            ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
+            ext_handler_i.download()
+            ext_handler_i.initialize()
+            ext_handler_i.update_settings(extension)
 
     @staticmethod
     @trace
@@ -1309,10 +1310,6 @@ class ExtHandlerInstance(object):
     def initialize(self):
         self.logger.info("Initializing extension {0}".format(self.get_full_name()))
 
-        self.logger.info("[sdou] waiting 10 seconds...")
-        self.logger.info("[sdou] a large number of sleeps are added during 'initalize' so that you may watch live (via a separate terminal) how the /var/lib/waagent/<extension_dir> changes throughout initialization")
-        time.sleep(10)
-
         self.logger.info(f"[sdou] # Add user execute permission to all files under the base dir: {self.get_base_dir()}")
         for file in fileutil.get_all_files(self.get_base_dir()):  # pylint: disable=redefined-builtin
             fileutil.chmod(file, os.stat(file).st_mode | stat.S_IXUSR)
@@ -1332,7 +1329,6 @@ class ExtHandlerInstance(object):
 
         self.ensure_consistent_data_for_mc()
 
-        time.sleep(5)
         self.logger.info("[sdou] Creating status and config dir")
 
         # Create status and config dir
@@ -1350,13 +1346,11 @@ class ExtHandlerInstance(object):
             fileutil.clean_ioerror(e, paths=[self.get_base_dir(), self.pkg_file])
             raise ExtensionDownloadError(u"Failed to initialize extension '{0}'".format(self.get_full_name()), e)
 
-        self.logger.info("[sdou] status and conf dir created. now waiting 5s...")
-        time.sleep(5)
+        self.logger.info("[sdou] Creating handler env")
         # Save HandlerEnvironment.json
         self.create_handler_env()
 
-        self.logger.info("[sdou] waiting another 5s...")
-        time.sleep(5)
+        self.logger.info("[sdou] setting extension resource limits")
 
         self.set_extension_resource_limits()
 
