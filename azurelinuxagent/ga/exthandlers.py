@@ -731,15 +731,11 @@ class ExtHandlersHandler(object):
         ext_handler_i.logger.info(f"[sdou] Extension full name is: {name}")
         if name == "Microsoft.Azure.Extensions.CustomScript":
             logger.info("[sdou] heya hi")
-            ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
-            ext_handler_i.download()
-            ext_handler_i.initialize()
-            ext_handler_i.update_settings(extension)
-        else:
-            ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
-            ext_handler_i.download()
-            ext_handler_i.initialize()
-            ext_handler_i.update_settings(extension)
+
+        ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
+        ext_handler_i.download()
+        ext_handler_i.initialize()
+        ext_handler_i.update_settings(extension)
 
     @staticmethod
     @trace
@@ -1270,6 +1266,11 @@ class ExtHandlerInstance(object):
     def download(self):
         begin_utc = datetime.datetime.utcnow()
         self.set_operation(WALAEventOperation.Download)
+
+        self.logger.info(f"[sdou] full name is: \"{self.get_extension_full_name()}\"")
+        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] heya hi from download")
+            shutil.move(f"/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
 
         if self.pkg is None or self.pkg.uris is None or len(self.pkg.uris) == 0:
             raise ExtensionDownloadError("No package uri found")

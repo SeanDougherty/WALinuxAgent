@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: customscript
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: customscript
+    image: sdough.azurecr.io/customscript:latest
+    command: [ "/bin/bash", "-c", "--" ]
+    args: [ "/var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/bin/custom-script-shim enable && sleep 15 && echo \"stdout from custom-script:\" &&cat /var/lib/waagent/custom-script/download/0/stdout" ]
+    # command: [ "/bin/bash", "-c", "--" ]
+    # args: [ "while true; do sleep 30; done;" ]
+    volumeMounts:
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/status/
+      name: cse
+      subPath: status
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/config/
+      name: cse
+      subPath: config
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/HandlerEnvironment.json
+      name: cse
+      subPath: HandlerEnvironment.json
+  volumes:
+  - name: cse
+    hostPath:
+      path: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/
+      type: Directory
