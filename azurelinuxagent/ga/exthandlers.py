@@ -1267,10 +1267,7 @@ class ExtHandlerInstance(object):
         begin_utc = datetime.datetime.utcnow()
         self.set_operation(WALAEventOperation.Download)
 
-        self.logger.info(f"[sdou] full name is: \"{self.get_extension_full_name()}\"")
-        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
-            logger.info("[sdou] heya hi from download")
-            shutil.move(f"/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
+        self.logger.info(f"[sdou] full name is: \"{self.get_extension_full_name()}\"")        
 
         if self.pkg is None or self.pkg.uris is None or len(self.pkg.uris) == 0:
             raise ExtensionDownloadError("No package uri found")
@@ -1400,6 +1397,9 @@ class ExtHandlerInstance(object):
         try:
             self.logger.info("[sdou] enabling...")
             self._enable_extension(extension, uninstall_exit_code)
+            if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+                logger.info("[sdou] heya hi from download")
+                shutil.move("/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
         except ExtensionError as error:
             if self.should_perform_multi_config_op(extension):
                 raise MultiConfigExtensionEnableError(error)
@@ -1452,6 +1452,9 @@ class ExtHandlerInstance(object):
     def disable(self, extension=None, ignore_error=False):
         try:
             self._disable_extension(extension)
+            if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+                logger.info("[sdou] heya hi from download")
+                shutil.move("/etc/kubernetes/manifests/cse.yaml", "/etc/cse.yaml")
         except ExtensionError as error:
             if not ignore_error:
                 raise
