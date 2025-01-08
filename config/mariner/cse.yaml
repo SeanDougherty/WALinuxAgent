@@ -8,9 +8,10 @@ spec:
   - name: customscript
     image: sdough.azurecr.io/customscript:latest
     command: [ "/bin/bash", "-c", "--" ]
-    args: [ "/var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/bin/custom-script-shim enable && sleep 15 && echo \"stdout from custom-script:\" &&cat /var/lib/waagent/custom-script/download/0/stdout" ]
+    args: [ "/var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/bin/custom-script-shim enable && sleep 5 && echo \"stdout from custom-script:\" && cat /var/lib/waagent/custom-script/download/0/stdout" ]
     # command: [ "/bin/bash", "-c", "--" ]
     # args: [ "while true; do sleep 30; done;" ]
+    # args: [ "tail -f /dev/null" ]
     volumeMounts:
     - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/status/
       name: cse

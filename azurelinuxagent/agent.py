@@ -176,6 +176,7 @@ class Agent(object):
         """
         logger.set_prefix("ExtHandler")
         threading.current_thread().name = "ExtHandler"
+
         #
         # Agents < 2.2.53 used to echo the log to the console. Since the extension handler could have been started by
         # one of those daemons, output a message indicating that output to the console will stop, otherwise users
@@ -191,7 +192,6 @@ class Agent(object):
                 logger.disable_console_output()
 
         from azurelinuxagent.ga.update import get_update_handler
-        logger.info("sdou has entered the chat")
         update_handler = get_update_handler()
         update_handler.run(debug)
 

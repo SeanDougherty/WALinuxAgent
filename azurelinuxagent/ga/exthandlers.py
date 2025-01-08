@@ -85,14 +85,6 @@ _STATUS_FILE_RETRY_DELAY = 2  # seconds
 # This is the default sequence number we use when there are no settings available for Handlers
 _DEFAULT_SEQ_NO = "0"
 
-def trace(func):
-    def wrap_function_with_prints(*args, **kwargs):
-        logger.info(f"[sdou] Entering: {func.__name__}")
-        result = func(*args, **kwargs)
-        logger.info(f"[sdou] Finished: {func.__name__}\n")
-        return result
-    return wrap_function_with_prints
-
 
 class ExtHandlerStatusValue(object):
     """
@@ -198,7 +190,7 @@ def parse_ext_status(ext_status, data):
         if substatus is not None:
             ext_status.substatusList.append(parse_ext_substatus(substatus))
 
-@trace
+
 def migrate_handler_state():
     """
     Migrate handler state and status (if they exist) from an agent-owned directory into the
@@ -264,7 +256,7 @@ class GoalStateStatus(object):
 def get_exthandlers_handler(protocol):
     return ExtHandlersHandler(protocol)
 
-@trace
+
 def list_agent_lib_directory(skip_agent_package=True, ignore_names=None):
     lib_dir = conf.get_lib_dir()
     for name in os.listdir(lib_dir):
@@ -471,7 +463,6 @@ class ExtHandlersHandler(object):
 
         return all_extensions
 
-    @trace
     def handle_ext_handlers(self, goal_state_id):
         if not self.ext_handlers:
             logger.info("No extension handlers found, not processing anything.")
@@ -597,7 +588,6 @@ class ExtHandlersHandler(object):
             msg = "Dependent Extension {0} did not succeed. Status was {1}".format(extension_name, status)
             raise Exception(msg)
 
-    @trace
     def handle_ext_handler(self, ext_handler_i, extension, goal_state_id):
         """
         Execute the requested command for the handler and return if success
@@ -695,7 +685,6 @@ class ExtHandlersHandler(object):
             add_event(name=name, version=handler_version, op=report_op, is_success=False, log_event=True,
                       message=message)
 
-    @trace
     def handle_enable(self, ext_handler_i, extension):
         """
              1- Ensure the handler is installed
@@ -725,20 +714,13 @@ class ExtHandlersHandler(object):
         self.__handle_extension(ext_handler_i, extension, uninstall_exit_code)
 
     @staticmethod
-    @trace
     def __setup_new_handler(ext_handler_i, extension):
-        name = ext_handler_i.get_extension_full_name(extension)
-        ext_handler_i.logger.info(f"[sdou] Extension full name is: {name}")
-        if name == "Microsoft.Azure.Extensions.CustomScript":
-            logger.info("[sdou] heya hi")
-
         ext_handler_i.set_handler_state(ExtHandlerState.NotInstalled)
         ext_handler_i.download()
         ext_handler_i.initialize()
         ext_handler_i.update_settings(extension)
 
     @staticmethod
-    @trace
     def __handle_extension(ext_handler_i, extension, uninstall_exit_code):
         # Check if extension level settings provided for the handler, if not, call enable for the handler.
         # This is legacy behavior, we can have handlers with no settings.
@@ -764,7 +746,6 @@ class ExtHandlersHandler(object):
                 "Unknown requested state for Extension {0}: {1}".format(extension.name, extension.state))
 
     @staticmethod
-    @trace
     def _update_extension_handler_and_return_if_failed(old_ext_handler_i, ext_handler_i, extension=None):
 
         def execute_old_handler_command_and_return_if_succeeds(func):
@@ -827,7 +808,6 @@ class ExtHandlersHandler(object):
         ext_handler_i.update_with_install(uninstall_exit_code=uninstall_exit_code, extension=extension)
         return uninstall_exit_code
 
-    @trace
     def handle_disable(self, ext_handler_i, extension=None):
         """
             Disable is a legacy behavior, CRP doesn't support it, its only for XML based extensions.
@@ -838,7 +818,6 @@ class ExtHandlersHandler(object):
         if handler_state == ExtHandlerState.Enabled:
             ext_handler_i.disable(extension)
 
-    @trace
     def handle_uninstall(self, ext_handler_i, extension):
         """
         To Uninstall the handler, first ensure all extensions are disabled
@@ -1249,7 +1228,6 @@ class ExtHandlerInstance(object):
         add_event(name=name, version=ext_handler_version, message=message,
                   op=self.operation, is_success=is_success, duration=duration, log_event=log_event)
 
-    @trace
     def _unzip_extension_package(self, source_file, target_directory):
         self.logger.info("Unzipping extension package: {0}", source_file)
         try:
@@ -1262,21 +1240,14 @@ class ExtHandlerInstance(object):
             return False
         return True
 
-    @trace
     def download(self):
         begin_utc = datetime.datetime.utcnow()
         self.set_operation(WALAEventOperation.Download)
-
-        self.logger.info(f"[sdou] full name is: \"{self.get_extension_full_name()}\"")        
 
         if self.pkg is None or self.pkg.uris is None or len(self.pkg.uris) == 0:
             raise ExtensionDownloadError("No package uri found")
 
         package_file = os.path.join(conf.get_lib_dir(), self.get_extension_package_zipfile_name())
-
-        self.logger.info(f"[sdou] full name is: \"{self.get_full_name()}\"")
-        self.logger.info(f"[sdou] Searching for Package file: \"{package_file}\"")
-        self.logger.info(f"[sdou] base dir is: \"{self.get_base_dir()}\"")
 
         package_exists = False
         if os.path.exists(package_file):
@@ -1304,15 +1275,14 @@ class ExtHandlerInstance(object):
                 "Handler {0} does not support MultiConfig but CRP expects it, failing due to inconsistent data".format(
                     self.ext_handler.name))
 
-    @trace
     def initialize(self):
         self.logger.info("Initializing extension {0}".format(self.get_full_name()))
 
-        self.logger.info(f"[sdou] # Add user execute permission to all files under the base dir: {self.get_base_dir()}")
+        # Add user execute permission to all files under the base dir
         for file in fileutil.get_all_files(self.get_base_dir()):  # pylint: disable=redefined-builtin
             fileutil.chmod(file, os.stat(file).st_mode | stat.S_IXUSR)
 
-        self.logger.info("[sdou] # Save HandlerManifest.json then wait 60s...")
+        # Save HandlerManifest.json
         man_file = fileutil.search_file(self.get_base_dir(), 'HandlerManifest.json')
 
         if man_file is None:
@@ -1326,8 +1296,6 @@ class ExtHandlerInstance(object):
             raise ExtensionDownloadError(u"Failed to save HandlerManifest.json", e)
 
         self.ensure_consistent_data_for_mc()
-
-        self.logger.info("[sdou] Creating status and config dir")
 
         # Create status and config dir
         try:
@@ -1344,15 +1312,11 @@ class ExtHandlerInstance(object):
             fileutil.clean_ioerror(e, paths=[self.get_base_dir(), self.pkg_file])
             raise ExtensionDownloadError(u"Failed to initialize extension '{0}'".format(self.get_full_name()), e)
 
-        self.logger.info("[sdou] Creating handler env")
         # Save HandlerEnvironment.json
         self.create_handler_env()
 
-        self.logger.info("[sdou] setting extension resource limits")
-
         self.set_extension_resource_limits()
 
-    @trace
     def set_extension_resource_limits(self):
         extension_name = self.get_full_name()
         # setup the resource limits for extension operations and it's services.
@@ -1364,7 +1328,6 @@ class ExtHandlerInstance(object):
                 extension_name=extension_name, cpu_quota=resource_limits.get_extension_slice_cpu_quota())
             CGroupConfigurator.get_instance().set_extension_services_cpu_memory_quota(resource_limits.get_service_list())
 
-    @trace
     def create_status_file_if_not_exist(self, extension, status, code, operation, message):
         _, status_path = self.get_status_file_path(extension)
         if status_path is not None and not os.path.exists(status_path):
@@ -1392,13 +1355,12 @@ class ExtHandlerInstance(object):
             self.logger.info("Creating a placeholder status file {0} with status: {1}".format(status_path, status))
             fileutil.write_file(status_path, json.dumps(status_contents))
 
-    @trace
     def enable(self, extension=None, uninstall_exit_code=None):
         try:
             self.logger.info("[sdou] enabling...")
             self._enable_extension(extension, uninstall_exit_code)
             if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
-                logger.info("[sdou] heya hi from download")
+                logger.info("[sdou] moving cse.yaml to StaticPodPath")
                 shutil.move("/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
         except ExtensionError as error:
             if self.should_perform_multi_config_op(extension):
@@ -1411,7 +1373,6 @@ class ExtHandlerInstance(object):
     def should_perform_multi_config_op(self, extension):
         return self.supports_multi_config and extension is not None
 
-    @trace
     def _enable_extension(self, extension, uninstall_exit_code):
         uninstall_exit_code = str(uninstall_exit_code) if uninstall_exit_code is not None else NOT_RUN
 
@@ -1438,7 +1399,6 @@ class ExtHandlerInstance(object):
         CGroupConfigurator.get_instance().start_tracking_extension_services_cgroups(
             resource_limits.get_service_list())
 
-    @trace
     def _disable_extension(self, extension=None):
         self.set_operation(WALAEventOperation.Disable)
         man = self.load_manifest()
@@ -1448,12 +1408,12 @@ class ExtHandlerInstance(object):
                             extension_error_code=ExtensionErrorCodes.PluginDisableProcessingFailed,
                             extension=extension)
 
-    @trace
     def disable(self, extension=None, ignore_error=False):
         try:
+            self.logger.info("[sdou] disabling...")
             self._disable_extension(extension)
             if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
-                logger.info("[sdou] heya hi from download")
+                logger.info("[sdou] removing cse.yaml from StaticPodPath")
                 shutil.move("/etc/kubernetes/manifests/cse.yaml", "/etc/cse.yaml")
         except ExtensionError as error:
             if not ignore_error:
@@ -1482,7 +1442,6 @@ class ExtHandlerInstance(object):
             self.set_handler_state(ExtHandlerState.Installed)
             self.set_handler_status(status=ExtHandlerStatusValue.not_ready, message="Plugin disabled")
 
-    @trace
     def install(self, uninstall_exit_code=None, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the install.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1491,7 +1450,6 @@ class ExtHandlerInstance(object):
         env = {ExtCommandEnvVariable.UninstallReturnCode: uninstall_exit_code}
 
         man = self.load_manifest()
-        self.logger.info(f"[sdou] dumping manifest from install: \n{man}\n")
         install_cmd = man.get_install_command()
         self.logger.info("Install extension [{0}]".format(install_cmd))
         self.set_operation(WALAEventOperation.Install)
@@ -1500,7 +1458,6 @@ class ExtHandlerInstance(object):
         self.set_handler_state(ExtHandlerState.Installed)
         self.set_handler_status(status=ExtHandlerStatusValue.not_ready, message="Plugin installed but not enabled")
 
-    @trace
     def uninstall(self, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the uninstall.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1519,14 +1476,11 @@ class ExtHandlerInstance(object):
         self.logger.info("Uninstall extension [{0}]".format(uninstall_cmd))
         self.launch_command(uninstall_cmd, cmd_name="uninstall", extension=extension)
 
-    @trace
     def remove_ext_handler(self):
         try:
             zip_filename = os.path.join(conf.get_lib_dir(), self.get_extension_package_zipfile_name())
             if os.path.exists(zip_filename):
                 os.remove(zip_filename)
-                self.logger.info("[sdou] Deleted the extension zip at path {0}", zip_filename)
-            self.logger.info("[sdou] this is where I would cleanup containers")
             base_dir = self.get_base_dir()
             if os.path.isdir(base_dir):
                 self.logger.info("Remove extension handler directory: {0}", base_dir)
@@ -1548,7 +1502,6 @@ class ExtHandlerInstance(object):
             self.report_event(message=message, is_success=False)
             self.logger.warn(message)
 
-    @trace
     def update(self, handler_version=None, disable_exit_codes=None, updating_from_version=None, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the update.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1587,7 +1540,6 @@ class ExtHandlerInstance(object):
             self.set_handler_state(ExtHandlerState.FailedUpgrade)
             raise
 
-    @trace
     def update_with_install(self, uninstall_exit_code=None, extension=None):
         man = self.load_manifest()
         if man.is_update_with_install():
@@ -2009,7 +1961,6 @@ class ExtHandlerInstance(object):
         self.logger.info("Update settings file: {0}", settings_file)
         self.update_settings_file(settings_file, json.dumps(ext_settings))
 
-    @trace
     def create_handler_env(self):
         handler_env = {
                 HandlerEnvironment.logFolder: self.get_log_dir(),
@@ -2028,9 +1979,6 @@ class ExtHandlerInstance(object):
             HandlerEnvironment.version: HandlerEnvironment.schemaVersion,
             HandlerEnvironment.handlerEnvironment: handler_env
         }]
-
-        self.logger.info(f"[sdou] here is handler env: {json.dumps(env)}")
-
         try:
             fileutil.write_file(self.get_env_file(), json.dumps(env))
         except IOError as e:
