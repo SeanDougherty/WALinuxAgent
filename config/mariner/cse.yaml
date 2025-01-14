@@ -22,8 +22,14 @@ spec:
     - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/HandlerEnvironment.json
       name: cse
       subPath: HandlerEnvironment.json
+    - mountPath: /host
+      name: host
   volumes:
   - name: cse
     hostPath:
       path: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/
+      type: Directory
+  - name: host
+    hostPath:
+      path: /
       type: Directory
