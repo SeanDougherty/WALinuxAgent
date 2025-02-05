@@ -1357,11 +1357,7 @@ class ExtHandlerInstance(object):
 
     def enable(self, extension=None, uninstall_exit_code=None):
         try:
-            self.logger.info("[sdou] enabling...")
-            self._enable_extension(extension, uninstall_exit_code)
-            if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
-                logger.info("[sdou] moving cse.yaml to StaticPodPath")
-                shutil.move("/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
+            self._enable_extension(extension, uninstall_exit_code)            
         except ExtensionError as error:
             if self.should_perform_multi_config_op(extension):
                 raise MultiConfigExtensionEnableError(error)
@@ -1383,12 +1379,17 @@ class ExtHandlerInstance(object):
         self.set_extension_resource_limits()
 
         self.set_operation(WALAEventOperation.Enable)
+        self.logger.info("[sdou] enabling...")
         man = self.load_manifest()
-        enable_cmd = man.get_enable_command()
-        self.logger.info("Enable extension: [{0}]".format(enable_cmd))
-        self.launch_command(enable_cmd, cmd_name="enable", timeout=300,
-                            extension_error_code=ExtensionErrorCodes.PluginEnableProcessingFailed, env=env,
-                            extension=extension)
+        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] moving cse.yaml to StaticPodPath")
+            shutil.move("/etc/cse.yaml", "/etc/kubernetes/manifests/cse.yaml")
+        else:
+            enable_cmd = man.get_enable_command()
+            self.logger.info("Enable extension: [{0}]".format(enable_cmd))
+            self.launch_command(enable_cmd, cmd_name="enable", timeout=300,
+                                extension_error_code=ExtensionErrorCodes.PluginEnableProcessingFailed, env=env,
+                                extension=extension)
 
         if self.should_perform_multi_config_op(extension):
             # Only save extension state if MC supported
@@ -1401,20 +1402,21 @@ class ExtHandlerInstance(object):
 
     def _disable_extension(self, extension=None):
         self.set_operation(WALAEventOperation.Disable)
+        self.logger.info("[sdou] disabling...")
         man = self.load_manifest()
-        disable_cmd = man.get_disable_command()
-        self.logger.info("Disable extension: [{0}]".format(disable_cmd))
-        self.launch_command(disable_cmd, cmd_name="disable", timeout=900,
-                            extension_error_code=ExtensionErrorCodes.PluginDisableProcessingFailed,
-                            extension=extension)
+        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] removing cse.yaml from StaticPodPath")
+            shutil.move("/etc/kubernetes/manifests/cse.yaml", "/etc/cse.yaml")
+        else:
+            disable_cmd = man.get_disable_command()
+            self.logger.info("Disable extension: [{0}]".format(disable_cmd))
+            self.launch_command(disable_cmd, cmd_name="disable", timeout=900,
+                                extension_error_code=ExtensionErrorCodes.PluginDisableProcessingFailed,
+                                extension=extension)
 
     def disable(self, extension=None, ignore_error=False):
         try:
-            self.logger.info("[sdou] disabling...")
             self._disable_extension(extension)
-            if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
-                logger.info("[sdou] removing cse.yaml from StaticPodPath")
-                shutil.move("/etc/kubernetes/manifests/cse.yaml", "/etc/cse.yaml")
         except ExtensionError as error:
             if not ignore_error:
                 raise
@@ -1450,11 +1452,14 @@ class ExtHandlerInstance(object):
         env = {ExtCommandEnvVariable.UninstallReturnCode: uninstall_exit_code}
 
         man = self.load_manifest()
-        install_cmd = man.get_install_command()
-        self.logger.info("Install extension [{0}]".format(install_cmd))
-        self.set_operation(WALAEventOperation.Install)
-        self.launch_command(install_cmd, cmd_name="install", timeout=900, extension=extension,
-                            extension_error_code=ExtensionErrorCodes.PluginInstallProcessingFailed, env=env)
+        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] install control command not supported for containerized extensions")
+        else:
+            install_cmd = man.get_install_command()
+            self.logger.info("Install extension [{0}]".format(install_cmd))
+            self.set_operation(WALAEventOperation.Install)
+            self.launch_command(install_cmd, cmd_name="install", timeout=900, extension=extension,
+                                extension_error_code=ExtensionErrorCodes.PluginInstallProcessingFailed, env=env)
         self.set_handler_state(ExtHandlerState.Installed)
         self.set_handler_status(status=ExtHandlerStatusValue.not_ready, message="Plugin installed but not enabled")
 
@@ -1472,9 +1477,12 @@ class ExtHandlerInstance(object):
         CGroupConfigurator.get_instance().remove_extension_services_drop_in_files(
             resource_limits.get_service_list())
 
-        uninstall_cmd = man.get_uninstall_command()
-        self.logger.info("Uninstall extension [{0}]".format(uninstall_cmd))
-        self.launch_command(uninstall_cmd, cmd_name="uninstall", extension=extension)
+        if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+            logger.info("[sdou] uninstall control command not supported for containerized extensions")
+        else:
+            uninstall_cmd = man.get_uninstall_command()
+            self.logger.info("Uninstall extension [{0}]".format(uninstall_cmd))
+            self.launch_command(uninstall_cmd, cmd_name="uninstall", extension=extension)
 
     def remove_ext_handler(self):
         try:
@@ -1529,12 +1537,15 @@ class ExtHandlerInstance(object):
         try:
             self.set_operation(WALAEventOperation.Update)
             man = self.load_manifest()
-            update_cmd = man.get_update_command()
-            self.logger.info("Update extension [{0}]".format(update_cmd))
-            self.launch_command(update_cmd, cmd_name="update",
-                                timeout=900,
-                                extension_error_code=ExtensionErrorCodes.PluginUpdateProcessingFailed,
-                                env=env, extension=extension)
+            if self.get_extension_full_name() == "Microsoft.Azure.Extensions.CustomScript":
+                logger.info("[sdou] update control command not supported for containerized extensions")
+            else:
+                update_cmd = man.get_update_command()
+                self.logger.info("Update extension [{0}]".format(update_cmd))
+                self.launch_command(update_cmd, cmd_name="update",
+                                    timeout=900,
+                                    extension_error_code=ExtensionErrorCodes.PluginUpdateProcessingFailed,
+                                    env=env, extension=extension)
         except ExtensionError:
             # Mark the handler as Failed so we don't clean it up and can keep reporting its status
             self.set_handler_state(ExtHandlerState.FailedUpgrade)
