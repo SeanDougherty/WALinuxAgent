@@ -24,6 +24,16 @@ from .suse import SUSERDMAHandler
 from .ubuntu import UbuntuRDMAHandler
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+@trace
 def get_rdma_handler(
         distro_full_name=DISTRO_FULL_NAME,
         distro_version=DISTRO_VERSION

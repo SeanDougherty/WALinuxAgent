@@ -26,7 +26,16 @@ IMDS_RESPONSE_ERROR = 1
 IMDS_CONNECTION_ERROR = 2
 IMDS_INTERNAL_SERVER_ERROR = 3
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
+@trace
 def get_imds_client():
     return ImdsClient()
 
@@ -189,6 +198,7 @@ class ImageInfoMatcher(object):
 class ComputeInfo(DataContract):
     __matcher = ImageInfoMatcher(ENDORSED_IMAGE_INFO_MATCHER_JSON)
 
+
     def __init__(self,
                  location=None,
                  name=None,
@@ -256,6 +266,7 @@ class ComputeInfo(DataContract):
 
 
 class ImdsClient(object):
+
     def __init__(self, version=APIVERSION):
         self._api_version = version
         self._headers = {
@@ -269,13 +280,16 @@ class ImdsClient(object):
         self._regex_ioerror = re.compile(r".*HTTP Failed. GET http://[^ ]+ -- IOError .*")
         self._regex_throttled = re.compile(r".*HTTP Retry. GET http://[^ ]+ -- Status Code 429 .*")
 
+    @trace
     def _get_metadata_url(self, endpoint, resource_path):
         return BASE_METADATA_URI.format(endpoint, resource_path, self._api_version)
 
+    @trace
     def _http_get(self, endpoint, resource_path, headers):
         url = self._get_metadata_url(endpoint, resource_path)
         return restutil.http_get(url, headers=headers, use_proxy=False)
 
+    @trace
     def _get_metadata_from_endpoint(self, endpoint, resource_path, headers):
         """
         Get metadata from one of the IMDS endpoints.
@@ -312,6 +326,7 @@ class ImdsClient(object):
 
         return IMDS_RESPONSE_SUCCESS, resp.read()
 
+    @trace
     def get_metadata(self, resource_path, is_health):
         """
         Get metadata from IMDS, falling back to Wireserver endpoint if necessary.
@@ -333,6 +348,7 @@ class ImdsClient(object):
         # else it's a client-side error, e.g. IMDS_CONNECTION_ERROR
         return MetadataResult(False, False, resp)
 
+    @trace
     def get_compute(self):
         """
         Fetch compute information.

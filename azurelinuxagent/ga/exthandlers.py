@@ -86,6 +86,17 @@ _STATUS_FILE_RETRY_DELAY = 2  # seconds
 _DEFAULT_SEQ_NO = "0"
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+
 class ExtHandlerStatusValue(object):
     """
     Statuses for Extension Handlers
@@ -141,7 +152,7 @@ def parse_formatted_message(formatted_message):
     validate_has_key(formatted_message, 'message', 'formattedMessage/message')
     return formatted_message.get('message')
 
-
+@trace
 def parse_ext_substatus(substatus):
     # Check extension sub status format
     validate_has_key(substatus, 'status', 'substatus/status')
@@ -154,7 +165,7 @@ def parse_ext_substatus(substatus):
     status.message = parse_formatted_message(formatted_message)
     return status
 
-
+@trace
 def parse_ext_status(ext_status, data):
     if data is None:
         return
@@ -190,7 +201,7 @@ def parse_ext_status(ext_status, data):
         if substatus is not None:
             ext_status.substatusList.append(parse_ext_substatus(substatus))
 
-
+@trace
 def migrate_handler_state():
     """
     Migrate handler state and status (if they exist) from an agent-owned directory into the
@@ -252,11 +263,11 @@ class GoalStateStatus(object):
     Initialize = "Initialize"
     Transitioning = "Transitioning"
 
-
+@trace
 def get_exthandlers_handler(protocol):
     return ExtHandlersHandler(protocol)
 
-
+@trace
 def list_agent_lib_directory(skip_agent_package=True, ignore_names=None):
     lib_dir = conf.get_lib_dir()
     for name in os.listdir(lib_dir):
@@ -272,6 +283,7 @@ def list_agent_lib_directory(skip_agent_package=True, ignore_names=None):
 
 
 class ExtHandlersHandler(object):
+
     def __init__(self, protocol):
         self.protocol = protocol
         self.ext_handlers = None
@@ -334,6 +346,7 @@ class ExtHandlersHandler(object):
         supported_features = get_agent_supported_features_list_for_crp()
         return [feature for feature in required_features if feature not in supported_features]
 
+    @trace
     def __process_and_handle_extensions(self, svd_sequence_number, goal_state_id):
         try:
             # Verify we satisfy all required features, if any. If not, report failure here itself, no need to process anything further.
@@ -364,6 +377,7 @@ class ExtHandlersHandler(object):
                       message=msg,
                       log_event=False)
 
+
     @staticmethod
     def get_ext_handler_instance_from_path(name, path, protocol, skip_handlers=None):
         if not os.path.isdir(path) or re.match(HANDLER_NAME_PATTERN, name) is None:
@@ -379,6 +393,7 @@ class ExtHandlersHandler(object):
 
         return ExtHandlerInstance(eh, protocol)
 
+    @trace
     def _cleanup_outdated_handlers(self):
         # Skip cleanup if the previous GS was Unsupported
         if self.__last_gs_unsupported():
@@ -432,6 +447,7 @@ class ExtHandlersHandler(object):
                 except OSError as e:
                     logger.warn("Failed to remove extension package {0}: {1}".format(pkg, e.strerror))
 
+    @trace
     def _extensions_on_hold(self):
         if conf.get_enable_overprovisioning():
             if self.protocol.get_goal_state().extensions_goal_state.on_hold:
@@ -449,6 +465,7 @@ class ExtHandlersHandler(object):
             return extension.dependency_level_sort_key(handler.state)
         return handler.dependency_level_sort_key()
 
+    @trace
     def __get_sorted_extensions_for_processing(self):
         all_extensions = []
         for handler in self.ext_handlers:
@@ -463,6 +480,7 @@ class ExtHandlersHandler(object):
 
         return all_extensions
 
+    @trace
     def handle_ext_handlers(self, goal_state_id):
         if not self.ext_handlers:
             logger.info("No extension handlers found, not processing anything.")
@@ -588,6 +606,7 @@ class ExtHandlersHandler(object):
             msg = "Dependent Extension {0} did not succeed. Status was {1}".format(extension_name, status)
             raise Exception(msg)
 
+    @trace
     def handle_ext_handler(self, ext_handler_i, extension, goal_state_id):
         """
         Execute the requested command for the handler and return if success
@@ -685,6 +704,7 @@ class ExtHandlersHandler(object):
             add_event(name=name, version=handler_version, op=report_op, is_success=False, log_event=True,
                       message=message)
 
+    @trace
     def handle_enable(self, ext_handler_i, extension):
         """
              1- Ensure the handler is installed
@@ -808,6 +828,7 @@ class ExtHandlersHandler(object):
         ext_handler_i.update_with_install(uninstall_exit_code=uninstall_exit_code, extension=extension)
         return uninstall_exit_code
 
+    @trace
     def handle_disable(self, ext_handler_i, extension=None):
         """
             Disable is a legacy behavior, CRP doesn't support it, its only for XML based extensions.
@@ -818,6 +839,7 @@ class ExtHandlersHandler(object):
         if handler_state == ExtHandlerState.Enabled:
             ext_handler_i.disable(extension)
 
+    @trace
     def handle_uninstall(self, ext_handler_i, extension):
         """
         To Uninstall the handler, first ensure all extensions are disabled
@@ -1018,6 +1040,7 @@ class ExtHandlerInstance(object):
         self.logger = None
         self.set_logger(extension=extension, execution_log_max_size=execution_log_max_size)
 
+    @trace
     @property
     def supports_multi_config(self):
         return self.ext_handler.supports_multi_config
@@ -1037,6 +1060,7 @@ class ExtHandlerInstance(object):
             return [ext for ext in self.extensions if self.get_extension_state(ext) == ExtensionState.Enabled]
         return self.extensions
 
+    @trace
     def get_extension_full_name(self, extension=None):
         """
         Get the full name of the extension <HandlerName>.<ExtensionName>.
@@ -1048,6 +1072,7 @@ class ExtHandlerInstance(object):
 
         return self.ext_handler.name
 
+    @trace
     def __set_command_execution_log(self, extension, execution_log_max_size):
         try:
             fileutil.mkdir(self.get_log_dir(), mode=0o755, reset_mode_and_owner=False)
@@ -1097,6 +1122,7 @@ class ExtHandlerInstance(object):
                         logger.warn("Exception occurred while attempting to remove file '{0}': {1}", f,
                                     cleanup_exception)
 
+    @trace
     def decide_version(self, target_state=None, extension=None):
         self.logger.verbose("Decide which version to use")
         try:
@@ -1168,6 +1194,7 @@ class ExtHandlerInstance(object):
         other_version = other.ext_handler.version
         return FlexibleVersion(self_version) != FlexibleVersion(other_version)
 
+    @trace
     def get_installed_ext_handler(self):
         latest_version = self.get_installed_version()
         if latest_version is None:
@@ -1177,6 +1204,7 @@ class ExtHandlerInstance(object):
         installed_handler.version = latest_version
         return ExtHandlerInstance(installed_handler, self.protocol)
 
+    @trace
     def get_installed_version(self):
         latest_version = None
 
@@ -1198,6 +1226,7 @@ class ExtHandlerInstance(object):
 
         return str(latest_version) if latest_version is not None else None
 
+    @trace
     def copy_status_files(self, old_ext_handler_i):
         self.logger.info("Copy status files from old plugin to new")
         old_ext_dir = old_ext_handler_i.get_base_dir()
@@ -1222,12 +1251,14 @@ class ExtHandlerInstance(object):
     def set_operation(self, op):
         self.operation = op
 
+    @trace
     def report_event(self, name=None, message="", is_success=True, duration=0, log_event=True):
         ext_handler_version = self.ext_handler.version
         name = self.ext_handler.name if name is None else name
         add_event(name=name, version=ext_handler_version, message=message,
                   op=self.operation, is_success=is_success, duration=duration, log_event=log_event)
 
+    @trace
     def _unzip_extension_package(self, source_file, target_directory):
         self.logger.info("Unzipping extension package: {0}", source_file)
         try:
@@ -1240,6 +1271,7 @@ class ExtHandlerInstance(object):
             return False
         return True
 
+    @trace
     def download(self):
         begin_utc = datetime.datetime.utcnow()
         self.set_operation(WALAEventOperation.Download)
@@ -1265,6 +1297,7 @@ class ExtHandlerInstance(object):
         self.pkg_file = package_file
 
 
+    @trace
     def ensure_consistent_data_for_mc(self):
         # If CRP expects Handler to support MC, ensure the HandlerManifest also reflects that.
         # Even though the HandlerManifest.json is not expected to change once the extension is installed,
@@ -1275,6 +1308,7 @@ class ExtHandlerInstance(object):
                 "Handler {0} does not support MultiConfig but CRP expects it, failing due to inconsistent data".format(
                     self.ext_handler.name))
 
+    @trace
     def initialize(self):
         self.logger.info("Initializing extension {0}".format(self.get_full_name()))
 
@@ -1317,6 +1351,7 @@ class ExtHandlerInstance(object):
 
         self.set_extension_resource_limits()
 
+    @trace
     def set_extension_resource_limits(self):
         extension_name = self.get_full_name()
         # setup the resource limits for extension operations and it's services.
@@ -1328,6 +1363,7 @@ class ExtHandlerInstance(object):
                 extension_name=extension_name, cpu_quota=resource_limits.get_extension_slice_cpu_quota())
             CGroupConfigurator.get_instance().set_extension_services_cpu_memory_quota(resource_limits.get_service_list())
 
+    @trace
     def create_status_file_if_not_exist(self, extension, status, code, operation, message):
         _, status_path = self.get_status_file_path(extension)
         if status_path is not None and not os.path.exists(status_path):
@@ -1355,6 +1391,7 @@ class ExtHandlerInstance(object):
             self.logger.info("Creating a placeholder status file {0} with status: {1}".format(status_path, status))
             fileutil.write_file(status_path, json.dumps(status_contents))
 
+    @trace
     def enable(self, extension=None, uninstall_exit_code=None):
         try:
             self._enable_extension(extension, uninstall_exit_code)            
@@ -1366,9 +1403,11 @@ class ExtHandlerInstance(object):
         self.set_handler_state(ExtHandlerState.Enabled)
         self.set_handler_status(status=ExtHandlerStatusValue.ready, message="Plugin enabled")
 
+    @trace
     def should_perform_multi_config_op(self, extension):
         return self.supports_multi_config and extension is not None
 
+    @trace
     def _enable_extension(self, extension, uninstall_exit_code):
         uninstall_exit_code = str(uninstall_exit_code) if uninstall_exit_code is not None else NOT_RUN
 
@@ -1400,6 +1439,7 @@ class ExtHandlerInstance(object):
         CGroupConfigurator.get_instance().start_tracking_extension_services_cgroups(
             resource_limits.get_service_list())
 
+    @trace
     def _disable_extension(self, extension=None):
         self.set_operation(WALAEventOperation.Disable)
         self.logger.info("[sdou] disabling...")
@@ -1414,6 +1454,7 @@ class ExtHandlerInstance(object):
                                 extension_error_code=ExtensionErrorCodes.PluginDisableProcessingFailed,
                                 extension=extension)
 
+    @trace
     def disable(self, extension=None, ignore_error=False):
         try:
             self._disable_extension(extension)
@@ -1444,6 +1485,7 @@ class ExtHandlerInstance(object):
             self.set_handler_state(ExtHandlerState.Installed)
             self.set_handler_status(status=ExtHandlerStatusValue.not_ready, message="Plugin disabled")
 
+    @trace
     def install(self, uninstall_exit_code=None, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the install.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1463,6 +1505,7 @@ class ExtHandlerInstance(object):
         self.set_handler_state(ExtHandlerState.Installed)
         self.set_handler_status(status=ExtHandlerStatusValue.not_ready, message="Plugin installed but not enabled")
 
+    @trace
     def uninstall(self, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the uninstall.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1484,6 +1527,7 @@ class ExtHandlerInstance(object):
             self.logger.info("Uninstall extension [{0}]".format(uninstall_cmd))
             self.launch_command(uninstall_cmd, cmd_name="uninstall", extension=extension)
 
+    @trace
     def remove_ext_handler(self):
         try:
             zip_filename = os.path.join(conf.get_lib_dir(), self.get_extension_package_zipfile_name())
@@ -1510,6 +1554,7 @@ class ExtHandlerInstance(object):
             self.report_event(message=message, is_success=False)
             self.logger.warn(message)
 
+    @trace
     def update(self, handler_version=None, disable_exit_codes=None, updating_from_version=None, extension=None):
         # For Handler level operations, extension just specifies the settings that initiated the update.
         # This is needed to provide the sequence number and extension name in case the extension needs to report
@@ -1551,6 +1596,7 @@ class ExtHandlerInstance(object):
             self.set_handler_state(ExtHandlerState.FailedUpgrade)
             raise
 
+    @trace
     def update_with_install(self, uninstall_exit_code=None, extension=None):
         man = self.load_manifest()
         if man.is_update_with_install():
@@ -1560,6 +1606,7 @@ class ExtHandlerInstance(object):
                              "Skip install during upgrade.")
         self.set_handler_state(ExtHandlerState.Installed)
 
+    @trace
     def _get_last_modified_seq_no_from_config_files(self, extension):
         """
         The sequence number is not guaranteed to always be strictly increasing. To ensure we always get the latest one,
@@ -1601,6 +1648,7 @@ class ExtHandlerInstance(object):
 
         return seq_no
 
+    @trace
     def get_status_file_path(self, extension=None):
         """
         We should technically only fetch the sequence number from GoalState and not rely on the filesystem at all,
@@ -1631,6 +1679,7 @@ class ExtHandlerInstance(object):
 
         return seq_no if seq_no is not None else -1, path
 
+    @trace
     def collect_ext_status(self, ext):
         self.logger.verbose("Collect extension status for {0}".format(self.get_extension_full_name(ext)))
         seq_no, ext_status_file = self.get_status_file_path(ext)
@@ -1713,6 +1762,7 @@ class ExtHandlerInstance(object):
 
         return ext_status
 
+    @trace
     def get_ext_handling_status(self, ext):
         seq_no, ext_status_file = self.get_status_file_path(ext)
 
@@ -1730,6 +1780,7 @@ class ExtHandlerInstance(object):
 
         return status
 
+    @trace
     def is_ext_handling_complete(self, ext):
         status = self.get_ext_handling_status(ext)
 
@@ -1744,6 +1795,7 @@ class ExtHandlerInstance(object):
         # Extension completed, return its status
         return True, status
 
+    @trace
     def report_error_on_incarnation_change(self, goal_state_changed, log_msg, event_msg, extension=None,
                                            op=WALAEventOperation.ReportStatus):
         # Since this code is called on a loop, logging as a warning only on goal state change, else logging it
@@ -1755,6 +1807,7 @@ class ExtHandlerInstance(object):
         else:
             logger.verbose(log_msg)
 
+    @trace
     def get_extension_handler_statuses(self, handler_status, goal_state_changed):
         """
         Get the list of ExtHandlerStatus objects corresponding to each extension in the Handler. Each object might have
@@ -1816,6 +1869,7 @@ class ExtHandlerInstance(object):
 
         return ext_handler_statuses
 
+    @trace
     def collect_heartbeat(self):  # pylint: disable=R1710
         man = self.load_manifest()
         if not man.is_report_heartbeat():
@@ -1851,6 +1905,7 @@ class ExtHandlerInstance(object):
         last_update = int(time.time() - os.stat(heartbeat_file).st_mtime)
         return last_update <= 600
 
+    @trace
     def launch_command(self, cmd, cmd_name=None, timeout=300, extension_error_code=ExtensionErrorCodes.PluginProcessingError,
                        env=None, extension=None):
         begin_utc = datetime.datetime.utcnow()
@@ -1925,6 +1980,7 @@ class ExtHandlerInstance(object):
 
                 return process_output
 
+    @trace
     def load_manifest(self):
         man_file = self.get_manifest_file()
         try:
@@ -1947,6 +2003,7 @@ class ExtHandlerInstance(object):
                                    paths=[settings_file])
             raise ExtensionError(u"Failed to update settings file", e)
 
+    @trace
     def update_settings(self, extension):
         if self.extensions is None or len(self.extensions) == 0 or extension is None:
             # This is the behavior of waagent 2.0.x
@@ -1972,6 +2029,7 @@ class ExtHandlerInstance(object):
         self.logger.info("Update settings file: {0}", settings_file)
         self.update_settings_file(settings_file, json.dumps(ext_settings))
 
+    @trace
     def create_handler_env(self):
         handler_env = {
                 HandlerEnvironment.logFolder: self.get_log_dir(),
@@ -1997,23 +2055,29 @@ class ExtHandlerInstance(object):
                                    paths=[self.get_base_dir(), self.pkg_file])
             raise ExtensionDownloadError(u"Failed to save handler environment", e)
 
+    @trace
     def __get_handler_state_file_name(self, extension=None):
         if self.should_perform_multi_config_op(extension):
             return "{0}.HandlerState".format(extension.name)
         return "HandlerState"
 
+    @trace
     def set_handler_state(self, handler_state):
         self.__set_state(name=self.__get_handler_state_file_name(), value=handler_state)
 
+    @trace
     def get_handler_state(self):
         return self.__get_state(name=self.__get_handler_state_file_name(), default=ExtHandlerState.NotInstalled)
 
+    @trace
     def __set_extension_state(self, extension, extension_state):
         self.__set_state(name=self.__get_handler_state_file_name(extension), value=extension_state)
 
+    @trace
     def get_extension_state(self, extension=None):
         return self.__get_state(name=self.__get_handler_state_file_name(extension), default=ExtensionState.Disabled)
 
+    @trace
     def __set_state(self, name, value):
         state_dir = self.get_conf_dir()
         state_file = os.path.join(state_dir, name)
@@ -2025,6 +2089,7 @@ class ExtHandlerInstance(object):
             fileutil.clean_ioerror(e, paths=[state_file])
             self.logger.error("Failed to set state: {0}", e)
 
+    @trace
     def __get_state(self, name, default=None):
         state_dir = self.get_conf_dir()
         state_file = os.path.join(state_dir, name)
@@ -2037,6 +2102,7 @@ class ExtHandlerInstance(object):
             self.logger.error("Failed to get state: {0}", e)
             return default
 
+    @trace
     def __remove_extension_state_files(self, extension):
         self.logger.info("Removing states files for disabled extension: {0}".format(extension.name))
         try:
@@ -2055,6 +2121,7 @@ class ExtHandlerInstance(object):
             self.report_event(name=extension_name, message=message, is_success=False, log_event=False)
             self.logger.warn(message)
 
+    @trace
     def set_handler_status(self, status=ExtHandlerStatusValue.not_ready, message="", code=0):
         state_dir = self.get_conf_dir()
 
@@ -2080,6 +2147,7 @@ class ExtHandlerInstance(object):
             fileutil.clean_ioerror(error, paths=[status_file])
             self.logger.error("Failed to save handler status: {0}", textutil.format_exception(error))
 
+    @trace
     def get_handler_status(self):
         state_dir = self.get_conf_dir()
         status_file = os.path.join(state_dir, "HandlerStatus")
@@ -2109,11 +2177,13 @@ class ExtHandlerInstance(object):
 
         return None
 
+    @trace
     def get_extension_package_zipfile_name(self):
         return "{0}__{1}{2}".format(self.ext_handler.name,
                                     self.ext_handler.version,
                                     HANDLER_PKG_EXT)
 
+    @trace
     def get_full_name(self, extension=None):
         """
         :return: <HandlerName>-<HandlerVersion> if extension is None or Handler does not support Multi Config,
@@ -2121,27 +2191,35 @@ class ExtHandlerInstance(object):
         """
         return "{0}-{1}".format(self.get_extension_full_name(extension), self.ext_handler.version)
 
+    @trace
     def get_base_dir(self):
         return os.path.join(conf.get_lib_dir(), self.get_full_name())
 
+    @trace
     def get_status_dir(self):
         return os.path.join(self.get_base_dir(), "status")
 
+    @trace
     def get_conf_dir(self):
         return os.path.join(self.get_base_dir(), 'config')
 
+    @trace
     def get_extension_events_dir(self):
         return os.path.join(self.get_log_dir(), EVENTS_DIRECTORY)
 
+    @trace
     def get_heartbeat_file(self):
         return os.path.join(self.get_base_dir(), 'heartbeat.log')
 
+    @trace
     def get_manifest_file(self):
         return os.path.join(self.get_base_dir(), 'HandlerManifest.json')
 
+    @trace
     def get_env_file(self):
         return os.path.join(self.get_base_dir(), HandlerEnvironment.fileName)
 
+    @trace
     def get_log_dir(self):
         return os.path.join(conf.get_ext_log_dir(), self.ext_handler.name)
 
@@ -2184,6 +2262,7 @@ class ExtHandlerInstance(object):
                                        code=ExtensionStatusError.InvalidJsonFile)
         return data_str, data
 
+    @trace
     def _process_substatus_list(self, substatus_list, current_status_size=0):
         processed_substatus = []
 
@@ -2238,24 +2317,31 @@ class HandlerManifest(object):
     def get_version(self):
         return self.data["version"]
 
+    @trace
     def get_install_command(self):
         return self.data['handlerManifest']["installCommand"]
 
+    @trace
     def get_uninstall_command(self):
         return self.data['handlerManifest']["uninstallCommand"]
 
+    @trace
     def get_update_command(self):
         return self.data['handlerManifest']["updateCommand"]
 
+    @trace
     def get_enable_command(self):
         return self.data['handlerManifest']["enableCommand"]
 
+    @trace
     def get_disable_command(self):
         return self.data['handlerManifest']["disableCommand"]
 
+    @trace
     def is_report_heartbeat(self):
         return self.data['handlerManifest'].get('reportHeartbeat', False)
 
+    @trace
     def is_update_with_install(self):
         update_mode = self.data['handlerManifest'].get('updateMode')
         if update_mode is None:

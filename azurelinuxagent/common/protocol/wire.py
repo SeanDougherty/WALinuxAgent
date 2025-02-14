@@ -63,16 +63,28 @@ MAX_EVENT_BUFFER_SIZE = 2 ** 16 - 2 ** 10
 _DOWNLOAD_TIMEOUT = timedelta(minutes=5)
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class UploadError(HttpError):
     pass
 
 
 class WireProtocol(DataContract):
+
     def __init__(self, endpoint):
         if endpoint is None:
             raise ProtocolError("WireProtocol endpoint is None")
         self.client = WireClient(endpoint)
 
+    @trace
     def detect(self, init_goal_state=True, save_to_history=False):
         self.client.check_wire_protocol_version()
 
@@ -103,12 +115,15 @@ class WireProtocol(DataContract):
             except GoalStateInconsistentError as error:
                 logger.warn("{0}", ustr(error))
 
+    @trace
     def update_host_plugin_from_goal_state(self):
         self.client.update_host_plugin_from_goal_state()
 
+    @trace
     def get_endpoint(self):
         return self.client.get_endpoint()
 
+    @trace
     def get_vminfo(self):
         goal_state = self.client.get_goal_state()
         hosting_env = self.client.get_hosting_env()
@@ -125,9 +140,11 @@ class WireProtocol(DataContract):
         certificates = self.client.get_certs()
         return certificates.cert_list
 
+    @trace
     def get_goal_state(self):
         return self.client.get_goal_state()
 
+    @trace
     def report_provision_status(self, provision_status):
         validate_param("provision_status", provision_status, ProvisionStatus)
 
@@ -139,6 +156,7 @@ class WireProtocol(DataContract):
             thumbprint = provision_status.properties.certificateThumbprint
             self.client.report_role_prop(thumbprint)
 
+    @trace
     def report_vm_status(self, vm_status):
         validate_param("vm_status", vm_status, VMStatus)
         self.client.status_blob.set_vm_status(vm_status)
@@ -153,7 +171,7 @@ class WireProtocol(DataContract):
     def get_status_blob_data(self):
         return self.client.status_blob.data
 
-
+@trace
 def _build_role_properties(container_id, role_instance_id, thumbprint):
     xml = (u"<?xml version=\"1.0\" encoding=\"utf-8\"?>"
            u"<RoleProperties>"
@@ -172,7 +190,7 @@ def _build_role_properties(container_id, role_instance_id, thumbprint):
            u"").format(container_id, role_instance_id, thumbprint)
     return xml
 
-
+@trace
 def _build_health_report(incarnation, container_id, role_instance_id,
                          status, substatus, description):
     # The max description that can be sent to WireServer is 4096 bytes.
@@ -274,7 +292,7 @@ def get_ga_update_status_to_v1(update_status):
     }
     return v1_ga_update_status
 
-
+@trace
 def ext_substatus_to_v1(sub_status_list):
     status_list = []
     for substatus in sub_status_list:
@@ -288,6 +306,7 @@ def ext_substatus_to_v1(sub_status_list):
     return status_list
 
 
+@trace
 def ext_status_to_v1(ext_status):
     if ext_status is None:
         return None
@@ -309,7 +328,7 @@ def ext_status_to_v1(ext_status):
         v1_ext_status['status']['substatus'] = v1_sub_status
     return v1_ext_status
 
-
+@trace
 def ext_handler_status_to_v1(ext_handler_status):
     v1_handler_status = {
         'handlerVersion': ext_handler_status.version,
@@ -353,7 +372,7 @@ def vm_artifacts_aggregate_status_to_v1(vm_artifacts_aggregate_status):
     }
     return v1_artifact_aggregate_status
 
-
+@trace
 def vm_status_to_v1(vm_status):
     timestamp = _get_utc_timestamp_for_status_reporting()
 
@@ -402,6 +421,7 @@ def vm_status_to_v1(vm_status):
 
 
 class StatusBlob(object):
+
     def __init__(self, client):
         self.vm_status = None
         self.client = client
@@ -423,6 +443,7 @@ class StatusBlob(object):
         self.data = self.to_json()
         self.type = blob_type
 
+    @trace
     def upload(self, url):
         try:
             if not self.type in ["BlockBlob", "PageBlob"]:
@@ -551,9 +572,11 @@ class WireClient(object):
         self._host_plugin = None
         self.status_blob = StatusBlob(self)
 
+    @trace
     def get_endpoint(self):
         return self._endpoint
 
+    @trace
     def call_wireserver(self, http_req, *args, **kwargs):
         try:
             # Never use the HTTP proxy for wireserver
@@ -575,6 +598,7 @@ class WireClient(object):
 
         return resp
 
+    @trace
     def decode_config(self, data):
         if data is None:
             return None
@@ -582,6 +606,7 @@ class WireClient(object):
         xml_text = ustr(data, encoding='utf-8')
         return xml_text
 
+    @trace
     def fetch_config(self, uri, headers):
         resp = self.call_wireserver(restutil.http_get, uri, headers=headers)
         return self.decode_config(resp.read())
@@ -594,9 +619,11 @@ class WireClient(object):
 
         return http_req(*args, **kwargs)
 
+    @trace
     def fetch_artifacts_profile_blob(self, uri):
         return self._fetch_content("artifacts profile blob", [uri], use_verify_header=False)[1]  # _fetch_content returns a (uri, content) tuple
 
+    @trace
     def fetch_manifest(self, manifest_type, uris, use_verify_header):
         uri, content = self._fetch_content("{0} manifest".format(manifest_type), uris, use_verify_header=use_verify_header)
         self.get_host_plugin().update_manifest_uri(uri)
@@ -620,6 +647,7 @@ class WireClient(object):
 
         return self._download_with_fallback_channel(download_type, uris, direct_download=direct_download, hgap_download=hgap_download)
 
+    @trace
     def download_zip_package(self, package_type, uris, target_file, target_directory, use_verify_header):
         """
         Downloads the ZIP package specified in 'uris' (which is a list of alternate locations for the ZIP), saving it to 'target_file' and then expanding
@@ -642,6 +670,7 @@ class WireClient(object):
 
         self._download_with_fallback_channel(package_type, uris, direct_download=direct_download, hgap_download=hgap_download, on_downloaded=on_downloaded)
 
+    @trace
     def _download_with_fallback_channel(self, download_type, uris, direct_download, hgap_download, on_downloaded=None):
         """
         Walks the given list of 'uris' issuing HTTP GET requests, attempting to download the content of each URI. The download is done using both the default and
@@ -706,6 +735,7 @@ class WireClient(object):
             except Exception as exception:
                 logger.warn("Cannot delete {0}: {1}", target_file, ustr(exception))
 
+    @trace
     def stream(self, uri, destination, headers=None, use_proxy=None):
         """
         Downloads the content of the given 'uri' and saves it to the 'destination' file.
@@ -731,6 +761,7 @@ class WireClient(object):
                     logger.warn("Can't delete {0}: {1}", destination, ustr(exception))
             raise
 
+    @trace
     def fetch(self, uri, headers=None, use_proxy=None, decode=True, retry_codes=None, ok_codes=None):
         """
         Returns a tuple with the content and headers of the response. The headers are a list of (name, value) tuples.
@@ -745,6 +776,7 @@ class WireClient(object):
             response_headers = response.getheaders()
         return content, response_headers
 
+    @trace
     def _fetch_response(self, uri, headers=None, use_proxy=None, retry_codes=None, ok_codes=None):
         resp = None
         try:
@@ -780,6 +812,7 @@ class WireClient(object):
 
         return resp
 
+    @trace
     def update_host_plugin_from_goal_state(self):
         """
         Fetches a new goal state and updates the Container ID and Role Config Name of the host plugin client
@@ -787,11 +820,13 @@ class WireClient(object):
         if self._host_plugin is not None:
             GoalState.update_host_plugin_headers(self)
 
+    @trace
     def update_host_plugin(self, container_id, role_config_name):
         if self._host_plugin is not None:
             self._host_plugin.update_container_id(container_id)
             self._host_plugin.update_role_config_name(role_config_name)
 
+    @trace
     def update_goal_state(self, silent=False, save_to_history=False):
         """
         Updates the goal state if the incarnation or etag changed
@@ -807,6 +842,7 @@ class WireClient(object):
         except Exception as exception:
             raise ProtocolError("Error fetching goal state: {0}".format(ustr(exception)))
 
+    @trace
     def reset_goal_state(self, goal_state_properties=GoalStateProperties.All, silent=False, save_to_history=False):
         """
         Resets the goal state
@@ -822,16 +858,19 @@ class WireClient(object):
         except Exception as exception:
             raise ProtocolError("Error fetching goal state: {0}".format(ustr(exception)))
 
+    @trace
     def get_goal_state(self):
         if self._goal_state is None:
             raise ProtocolError("Trying to fetch goal state before initialization!")
         return self._goal_state
 
+    @trace
     def get_hosting_env(self):
         if self._goal_state is None:
             raise ProtocolError("Trying to fetch Hosting Environment before initialization!")
         return self._goal_state.hosting_env
 
+    @trace
     def get_shared_conf(self):
         if self._goal_state is None:
             raise ProtocolError("Trying to fetch Shared Conf before initialization!")
@@ -915,6 +954,7 @@ class WireClient(object):
                              log_event=True)
                 raise
 
+    @trace
     def _download_using_appropriate_channel(self, direct_download, hgap_download):
         """
         Does a download using both the default and fallback channels. By default, the primary channel is direct, host channel is the fallback.
@@ -946,6 +986,7 @@ class WireClient(object):
         except Exception as exception:
             raise HttpError("Download failed both on the primary and fallback channels. Primary: [{0}] Fallback: [{1}]".format(ustr(primary_channel_error), ustr(exception)))
 
+    @trace
     def upload_status_blob(self):
         extensions_goal_state = self.get_goal_state().extensions_goal_state
 
@@ -1018,6 +1059,7 @@ class WireClient(object):
                                  u",{0}: {1}").format(resp.status,
                                                       resp.read()))
 
+    @trace
     def report_health(self, status, substatus, description):
         goal_state = self.get_goal_state()
         health_report = _build_health_report(goal_state.incarnation,
@@ -1068,6 +1110,7 @@ class WireClient(object):
             raise ProtocolError(
                 "Failed to send events:{0}".format(resp.status))
 
+    @trace
     def report_event(self, events_iterator):
         buf = {}
         debug_info = CollectOrReportEventDebugInfo(operation=CollectOrReportEventDebugInfo.OP_REPORT)

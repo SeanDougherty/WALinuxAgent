@@ -21,7 +21,17 @@ from .freebsd import FreeBSDResourceDiskHandler
 from .openbsd import OpenBSDResourceDiskHandler
 from .openwrt import OpenWRTResourceDiskHandler
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
+
+@trace
 def get_resourcedisk_handler(distro_name=DISTRO_NAME, 
                              distro_version=DISTRO_VERSION,  # pylint: disable=W0613
                              distro_full_name=DISTRO_FULL_NAME):  # pylint: disable=W0613

@@ -110,6 +110,16 @@ KNOWN_WIRESERVER_IP = '168.63.129.16'
 HOST_PLUGIN_PORT = 32526
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class IOErrorCounter(object):
     _lock = threading.RLock()
     _protocol_endpoint = KNOWN_WIRESERVER_IP
@@ -137,6 +147,7 @@ class IOErrorCounter(object):
     def reset():
         with IOErrorCounter._lock:
             IOErrorCounter._counts = {"hostplugin":0, "protocol":0, "other":0}
+
 
     @staticmethod
     def set_protocol_endpoint(endpoint=KNOWN_WIRESERVER_IP):
@@ -647,7 +658,7 @@ def request_failed_at_hostplugin(resp, upstream_failure_codes=None):
         upstream_failure_codes = HOSTPLUGIN_UPSTREAM_FAILURE_CODES
     return resp is not None and resp.status >= 500 and resp.status not in upstream_failure_codes
 
-
+@trace
 def read_response_error(resp):
     result = ''
     if resp is not None:

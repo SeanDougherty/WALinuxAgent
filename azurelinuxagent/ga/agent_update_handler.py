@@ -29,6 +29,16 @@ from azurelinuxagent.ga.rsm_version_updater import RSMVersionUpdater
 from azurelinuxagent.ga.self_update_version_updater import SelfUpdateVersionUpdater
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class UpdateMode(object):
     """
     Enum for Update modes
@@ -36,7 +46,7 @@ class UpdateMode(object):
     RSM = "RSM"
     SelfUpdate = "SelfUpdate"
 
-
+@trace
 def get_agent_update_handler(protocol):
     return AgentUpdateHandler(protocol)
 
@@ -76,6 +86,7 @@ class AgentUpdateHandler(object):
 
     [Note: 1.0.8.147 is the minimum supported version of HGPA which will have the isVersionFromRSM and isVMEnabledForRSMUpgrades properties in vmsettings.]
     """
+
     def __init__(self, protocol):
         self._protocol = protocol
         self._gs_id = "unknown"
@@ -88,6 +99,7 @@ class AgentUpdateHandler(object):
             self._updater = SelfUpdateVersionUpdater(self._gs_id)
         else:
             self._updater = RSMVersionUpdater(self._gs_id, self._daemon_version)
+
 
     @staticmethod
     def _get_daemon_version_for_update():
@@ -117,6 +129,7 @@ class AgentUpdateHandler(object):
             logger.warn(msg)
             add_event(op=WALAEventOperation.AgentUpgrade, message=msg, log_event=False)
 
+    @trace
     def _is_initial_update(self):
         """
         Returns True if state file doesn't exit as presence of file consider as initial update already attempted
@@ -154,6 +167,7 @@ class AgentUpdateHandler(object):
             logger.warn(msg)
             add_event(op=WALAEventOperation.AgentUpgrade, message=msg, log_event=False)
 
+    @trace
     def _get_is_last_update_with_rsm(self):
         """
         Returns True if state file exists as this consider as last update with RSM is true

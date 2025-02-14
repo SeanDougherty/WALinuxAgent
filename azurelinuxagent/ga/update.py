@@ -90,6 +90,16 @@ READONLY_FILE_GLOBS = [
 ]
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class ExtensionsSummary(object):
     """
     The extensions summary is a list of (extension name, extension status) tuples for the current goal state; it is
@@ -116,7 +126,7 @@ class ExtensionsSummary(object):
     def __str__(self):
         return ustr(self.summary)
 
-
+@trace
 def get_update_handler():
     return UpdateHandler()
 
@@ -124,6 +134,7 @@ def get_update_handler():
 class UpdateHandler(object):
     TELEMETRY_HEARTBEAT_PERIOD = timedelta(minutes=30)
     CHECK_MEMORY_USAGE_PERIOD = timedelta(seconds=conf.get_cgroup_check_period())
+
 
     def __init__(self):
         self.osutil = get_osutil()
@@ -182,6 +193,7 @@ class UpdateHandler(object):
             else:
                 self._goal_state_period = conf.get_goal_state_period()
 
+    @trace
     def run_latest(self, child_args=None):
         """
         This method is called from the daemon to find and launch the most
@@ -306,6 +318,7 @@ class UpdateHandler(object):
         self.child_process = None
         return
 
+    @trace
     def run(self, debug=False):
         """
         This is the main loop which watches for agent and extension updates.
@@ -415,6 +428,7 @@ class UpdateHandler(object):
         self._shutdown()
         sys.exit(0)
 
+
     @staticmethod
     def _log_openssl_info():
         try:
@@ -438,6 +452,7 @@ class UpdateHandler(object):
             logger.info(message)
             add_event(op=WALAEventOperation.OpenSsl, message=message, is_success=False, log_event=False)
 
+    @trace
     def _initialize_goal_state(self, protocol):
         #
         # Block until we can fetch the first goal state (self._try_update_goal_state() does its own logging and error handling).
@@ -477,6 +492,7 @@ class UpdateHandler(object):
     def _get_vm_arch(self):
         return platform.machine()
 
+    @trace
     def _check_daemon_running(self, debug):
         # Check that the parent process (the agent's daemon) is still running
         if not debug and self._is_orphaned:
@@ -486,6 +502,7 @@ class UpdateHandler(object):
         for thread_handler in all_thread_handlers:
             thread_handler.run()
 
+    @trace
     def _check_threads_running(self, all_thread_handlers):
         # Check that all the threads are still running
         for thread_handler in all_thread_handlers:
@@ -493,6 +510,7 @@ class UpdateHandler(object):
                 logger.warn("{0} thread died, restarting".format(thread_handler.get_thread_name()))
                 thread_handler.start()
 
+    @trace
     def _try_update_goal_state(self, protocol):
         """
         Attempts to update the goal state and returns True on success or False on failure, sending telemetry events about the failures.
@@ -546,6 +564,7 @@ class UpdateHandler(object):
         """
         return self._goal_state is not None and self._goal_state.extensions_goal_state.id != self._last_extensions_gs_id and not self._goal_state.extensions_goal_state.is_outdated
 
+    @trace
     def _process_goal_state(self, exthandlers_handler, remote_access_handler, agent_update_handler):
         protocol = exthandlers_handler.protocol
 
@@ -674,6 +693,7 @@ class UpdateHandler(object):
                 sys.exit(0)
         return
 
+
     @staticmethod
     def __get_daemon_version_for_update():
         daemon_version = get_daemon_version()
@@ -683,6 +703,7 @@ class UpdateHandler(object):
         # use the min version as 2.2.53 as we started setting the daemon version starting 2.2.53.
         return FlexibleVersion("2.2.53")
 
+    @trace
     def get_latest_agent_greater_than_daemon(self, daemon_version=None):
         """
         If autoupdate is enabled, return the most current, downloaded,
@@ -701,6 +722,7 @@ class UpdateHandler(object):
 
         return available_agents[0] if len(available_agents) >= 1 else None
 
+    @trace
     def _emit_restart_event(self):
         try:
             if not self._is_clean_start:
@@ -718,22 +740,27 @@ class UpdateHandler(object):
 
         return
 
+
     @staticmethod
     def _emit_changes_in_default_configuration():
         try:
+            @trace
             def log_event(msg):
                 logger.info("******** {0} ********", msg)
                 add_event(AGENT_NAME, op=WALAEventOperation.ConfigurationChange, message=msg)
 
+            @trace
             def log_if_int_changed_from_default(name, current, message=""):
                 default = conf.get_int_default_value(name)
                 if default != current:
                     log_event("{0} changed from its default: {1}. New value: {2}. {3}".format(name, default, current, message))
 
+            @trace
             def log_if_op_disabled(name, value):
                 if not value:
                     log_event("{0} is set to False, not processing the operation".format(name))
 
+            @trace
             def log_if_agent_versioning_feature_disabled():
                 supports_ga_versioning = False
                 for _, feature in get_agent_supported_features_list_for_crp().items():
@@ -775,6 +802,7 @@ class UpdateHandler(object):
         except Exception as e:
             logger.warn("Failed to log changes in configuration: {0}", ustr(e))
 
+    @trace
     def _ensure_no_orphans(self, orphan_wait_interval=ORPHAN_WAIT_INTERVAL):
         pid_files, ignored = self._write_pid_file()  # pylint: disable=W0612
         for pid_file in pid_files:
@@ -806,6 +834,7 @@ class UpdateHandler(object):
                     ustr(e))
         return
 
+    @trace
     def _ensure_partition_assigned(self):
         """
         Assign the VM to a partition (0 - 99). Downloaded updates may be configured
@@ -821,15 +850,18 @@ class UpdateHandler(object):
                 is_success=True,
                 message=partition)
 
+    @trace
     def _ensure_readonly_files(self):
         for g in READONLY_FILE_GLOBS:
             for path in glob.iglob(os.path.join(conf.get_lib_dir(), g)):
                 os.chmod(path, stat.S_IRUSR)
 
+    @trace
     def _ensure_cgroups_initialized(self):
         configurator = CGroupConfigurator.get_instance()
         configurator.initialize()
 
+    @trace
     def _evaluate_agent_health(self, latest_agent):
         """
         Evaluate the health of the selected agent: If it is restarting
@@ -858,9 +890,11 @@ class UpdateHandler(object):
             raise Exception(msg)
         return
 
+    @trace
     def _filter_blacklisted_agents(self):
         self.agents = [agent for agent in self.agents if not agent.is_blacklisted]
 
+    @trace
     def _find_agents(self):
         """
         Load all non-blacklisted agents currently on disk.
@@ -893,6 +927,7 @@ class UpdateHandler(object):
     def is_running(self, value):
         self._is_running = value
 
+    @trace
     @property
     def _is_clean_start(self):
         return not os.path.isfile(self._sentinel_file_path())
@@ -908,6 +943,7 @@ class UpdateHandler(object):
 
         return fileutil.read_file(conf.get_agent_pid_file_path()) != ustr(parent_pid)
 
+    @trace
     def _load_agents(self):
         path = os.path.join(conf.get_lib_dir(), "{0}-*".format(AGENT_NAME))
         return [GuestAgent.from_installed_agent(agent_dir)
@@ -949,6 +985,7 @@ class UpdateHandler(object):
                 logger.warn(u"Purging {0} raised exception: {1}", agent_path, ustr(e))
         return
 
+    @trace
     def _set_and_sort_agents(self, agents=None):
         if agents is None:
             agents = []
@@ -968,8 +1005,10 @@ class UpdateHandler(object):
                 str(e))
         return
 
+    @trace
     def _sentinel_file_path(self):
         return os.path.join(conf.get_lib_dir(), AGENT_SENTINEL_FILE)
+
 
     @staticmethod
     def _initial_goal_state_file_path():
@@ -1016,6 +1055,7 @@ class UpdateHandler(object):
 
         return pid_files, pid_file
 
+    @trace
     def _send_heartbeat_telemetry(self, protocol, agent_update_handler):
         if self._last_telemetry_heartbeat is None:
             self._last_telemetry_heartbeat = datetime.utcnow() - UpdateHandler.TELEMETRY_HEARTBEAT_PERIOD
@@ -1043,6 +1083,7 @@ class UpdateHandler(object):
             self._heartbeat_update_goal_state_error_count = 0
             self._last_telemetry_heartbeat = datetime.utcnow()
 
+    @trace
     def _check_agent_memory_usage(self):
         """
         This checks the agent current memory usage and safely exit the process if agent reaches the memory limit
@@ -1066,6 +1107,7 @@ class UpdateHandler(object):
                 msg = "Error checking the agent's memory usage: {0} --- [NOTE: Will not log the same error for the 6 hours]".format(ustr(exception))
                 logger.warn(msg)
                 add_event(AGENT_NAME, op=WALAEventOperation.AgentMemory, is_success=False, message=msg)
+
 
     @staticmethod
     def _ensure_extension_telemetry_state_configured_properly(protocol):
@@ -1105,6 +1147,7 @@ class UpdateHandler(object):
         except Exception as e:
             logger.warn("Error when trying to delete existing Extension events directory. Error: {0}".format(ustr(e)))
 
+
     @staticmethod
     def _ensure_firewall_rules_persisted(dst_ip):
 
@@ -1129,6 +1172,7 @@ class UpdateHandler(object):
             message=msg,
             log_event=False)
 
+    @trace
     def _add_accept_tcp_firewall_rule_if_not_enabled(self, dst_ip):
 
         if not conf.enable_firewall():

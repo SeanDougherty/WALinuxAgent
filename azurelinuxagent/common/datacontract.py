@@ -31,7 +31,17 @@ class DataContract(object):
     pass
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class DataContractList(list):
+
     def __init__(self, item_cls):  # pylint: disable=W0231
         self.item_cls = item_cls
 
@@ -66,7 +76,6 @@ def set_properties(name, obj, data):
         return obj
     else:
         return data
-
 
 def get_properties(obj):
     if isinstance(obj, DataContract):

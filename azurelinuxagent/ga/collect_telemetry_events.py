@@ -39,6 +39,17 @@ from azurelinuxagent.ga.exthandlers import HANDLER_NAME_PATTERN
 from azurelinuxagent.ga.periodic_operation import PeriodicOperation
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_collect_telemetry_events_handler(send_telemetry_events_handler):
     return CollectTelemetryEventsHandler(send_telemetry_events_handler)
 

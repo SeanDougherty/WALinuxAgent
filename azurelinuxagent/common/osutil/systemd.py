@@ -22,13 +22,23 @@ from azurelinuxagent.common.osutil import get_osutil
 from azurelinuxagent.common.utils import shellutil
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 def _get_os_util():
     if _get_os_util.value is None:
         _get_os_util.value = get_osutil()
     return _get_os_util.value
 _get_os_util.value = None
 
-
+@trace
 def is_systemd():
     """
     Determine if systemd is managing system services; the implementation follows the same strategy as, for example,

@@ -61,6 +61,15 @@ _HEADER_VERIFY_FROM_ARTIFACTS_BLOB = "x-ms-verify-from-artifacts-blob"
 MAXIMUM_PAGEBLOB_PAGE_SIZE = 4 * 1024 * 1024  # Max page size: 4MB
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class HostPluginProtocol(object):
     is_default_channel = False
 
@@ -419,6 +428,7 @@ class HostPluginProtocol(object):
             return s.decode('utf-8')
         return s
 
+
     @staticmethod
     def _get_fast_track_state_file():
         # This file keeps the timestamp of the most recent goal state if it was retrieved via Fast Track
@@ -445,6 +455,7 @@ class HostPluginProtocol(object):
         except Exception as e:
             logger.warn("Error clearing the current state for Fast Track ({0}): {1}", HostPluginProtocol._get_fast_track_state_file(),
                         ustr(e))
+
 
     @staticmethod
     def get_fast_track_timestamp():

@@ -29,6 +29,15 @@ from azurelinuxagent.common.exception import AgentConfigError
 DISABLE_AGENT_FILE = 'disable_agent'
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class ConfigurationProvider(object):
     """
     Parse and store key:values in /etc/waagent.conf.
@@ -36,7 +45,8 @@ class ConfigurationProvider(object):
 
     def __init__(self):
         self.values = {}
-
+    
+    @trace
     def load(self, content):
         if not content:
             raise AgentConfigError("Can't not parse empty configuration")
@@ -48,6 +58,7 @@ class ConfigurationProvider(object):
                 key = parts[0].strip()
                 value = parts[1].split('#')[0].strip("\" ").strip()
                 self.values[key] = value if value != "None" else None
+
 
     @staticmethod
     def _get_default(default):
@@ -63,6 +74,7 @@ class ConfigurationProvider(object):
         val = self.values.get(key)
         return val if val is not None else self._get_default(default_value)
 
+    @trace
     def get_switch(self, key, default_value):
         """
         Retrieves a switch parameter by key and returns its value as a boolean. If not found returns the default value,
@@ -75,6 +87,7 @@ class ConfigurationProvider(object):
             return False
         return self._get_default(default_value)
 
+    @trace
     def get_int(self, key, default_value):
         """
         Retrieves an int parameter by key and returns its value. If not found returns the default value,
@@ -96,7 +109,7 @@ class ConfigurationProvider(object):
 
 __conf__ = ConfigurationProvider()
 
-
+@trace
 def load_conf_from_file(conf_file_path, conf=__conf__):
     """
     Load conf file from: conf_file_path
@@ -244,7 +257,7 @@ def is_present(key, conf=__conf__):
     """
     return conf.is_present(key)
 
-
+@trace
 def enable_firewall(conf=__conf__):
     return conf.get_switch("OS.EnableFirewall", False)
 
@@ -260,29 +273,29 @@ def get_remove_persistent_net_rules_period(conf=__conf__):
 def get_monitor_dhcp_client_restart_period(conf=__conf__):
     return conf.get_int("OS.MonitorDhcpClientRestartPeriod", 30)
 
-
+@trace
 def enable_rdma(conf=__conf__):
     return conf.get_switch("OS.EnableRDMA", False) or \
            conf.get_switch("OS.UpdateRdmaDriver", False) or \
            conf.get_switch("OS.CheckRdmaDriver", False)
 
-
+@trace
 def enable_rdma_update(conf=__conf__):
     return conf.get_switch("OS.UpdateRdmaDriver", False)
 
-
+@trace
 def enable_check_rdma_driver(conf=__conf__):
     return conf.get_switch("OS.CheckRdmaDriver", True)
 
-
+@trace
 def get_logs_verbose(conf=__conf__):
     return conf.get_switch("Logs.Verbose", False)
 
-
+@trace
 def get_logs_console(conf=__conf__):
     return conf.get_switch("Logs.Console", True)
 
-
+@trace
 def get_collect_logs(conf=__conf__):
     return conf.get_switch("Logs.Collect", True)
 
@@ -290,7 +303,7 @@ def get_collect_logs(conf=__conf__):
 def get_collect_logs_period(conf=__conf__):
     return conf.get_int("Logs.CollectPeriod", 3600)
 
-
+@trace
 def get_lib_dir(conf=__conf__):
     return conf.get("Lib.Dir", "/var/lib/waagent")
 
@@ -304,22 +317,23 @@ def get_dvd_mount_point(conf=__conf__):
     return conf.get("DVD.MountPoint", "/mnt/cdrom/secure")
 
 
+@trace
 def get_agent_pid_file_path(conf=__conf__):
     return conf.get("Pid.File", "/var/run/waagent.pid")
 
-
+@trace
 def get_ext_log_dir(conf=__conf__):
     return conf.get("Extension.LogDir", "/var/log/azure")
 
-
+@trace
 def get_agent_log_file():
     return "/var/log/waagent.log"
 
-
+@trace
 def get_fips_enabled(conf=__conf__):
     return conf.get_switch("OS.EnableFIPS", False)
 
-
+@trace
 def get_openssl_cmd(conf=__conf__):
     return conf.get("OS.OpensslPath", "/usr/bin/openssl")
 
@@ -384,7 +398,7 @@ def get_ssh_host_keypair_type(conf=__conf__):
 def get_ssh_host_keypair_mode(conf=__conf__):
     return conf.get("Provisioning.SshHostKeyPairType", "rsa")
 
-
+@trace
 def get_extensions_enabled(conf=__conf__):
     return conf.get_switch("Extensions.Enabled", True)
 
@@ -396,11 +410,11 @@ def get_wait_for_cloud_init(conf=__conf__):
 def get_wait_for_cloud_init_timeout(conf=__conf__):
     return conf.get_switch("Extensions.WaitForCloudInitTimeout", 3600)
 
-
+@trace
 def get_goal_state_period(conf=__conf__):
     return conf.get_int("Extensions.GoalStatePeriod", 6)
 
-
+@trace
 def get_initial_goal_state_period(conf=__conf__):
     return conf.get_int("Extensions.InitialGoalStatePeriod", default_value=lambda: get_goal_state_period(conf=conf))
 
@@ -428,11 +442,11 @@ def get_execute_customdata(conf=__conf__):
 def get_password_cryptid(conf=__conf__):
     return conf.get("Provisioning.PasswordCryptId", "6")
 
-
+@trace
 def get_provisioning_agent(conf=__conf__):
     return conf.get("Provisioning.Agent", "auto")
 
-
+@trace
 def get_provision_enabled(conf=__conf__):
     """
     Provisioning (as far as waagent is concerned) is enabled if either the
@@ -487,7 +501,7 @@ def get_resourcedisk_mountpoint(conf=__conf__):
 def get_resourcedisk_mountoptions(conf=__conf__):
     return conf.get("ResourceDisk.MountOptions", None)
 
-
+@trace
 def get_resourcedisk_filesystem(conf=__conf__):
     return conf.get("ResourceDisk.Filesystem", "ext3")
 
@@ -495,11 +509,11 @@ def get_resourcedisk_filesystem(conf=__conf__):
 def get_resourcedisk_swap_size_mb(conf=__conf__):
     return conf.get_int("ResourceDisk.SwapSizeMB", 0)
 
-
+@trace
 def get_autoupdate_gafamily(conf=__conf__):
     return conf.get("AutoUpdate.GAFamily", "Prod")
 
-
+@trace
 def get_autoupdate_enabled(conf=__conf__):
     return conf.get_switch("AutoUpdate.Enabled", True)
 
@@ -515,7 +529,7 @@ def get_enable_overprovisioning(conf=__conf__):
 def get_allow_http(conf=__conf__):
     return conf.get_switch("OS.AllowHTTP", False)
 
-
+@trace
 def get_disable_agent_file_path(conf=__conf__):
     return os.path.join(get_lib_dir(conf), DISABLE_AGENT_FILE)
 
@@ -527,7 +541,7 @@ def get_cgroups_enabled(conf=__conf__):
 def get_monitor_network_configuration_changes(conf=__conf__):
     return conf.get_switch("Monitor.NetworkConfigurationChanges", False)
 
-
+@trace
 def get_auto_update_to_latest_version(conf=__conf__):
     """
     If set to True, agent will update to the latest version
@@ -542,7 +556,7 @@ def get_auto_update_to_latest_version(conf=__conf__):
     default = get_autoupdate_enabled(conf=conf)
     return conf.get_switch("AutoUpdate.UpdateToLatestVersion", default)
 
-
+@trace
 def get_cgroup_check_period(conf=__conf__):
     """
     How often to perform checks on cgroups (are the processes in the cgroups as expected,
@@ -634,6 +648,7 @@ def get_cgroup_monitor_extension_name (conf=__conf__):
     return conf.get("Debug.CgroupMonitorExtensionName", "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent")
 
 
+@trace
 def get_enable_fast_track(conf=__conf__):
     """
     If True, the agent use FastTrack when retrieving goal states
@@ -683,7 +698,7 @@ def get_firewall_rules_log_period(conf=__conf__):
     """
     return conf.get_int("Debug.FirewallRulesLogPeriod", 86400)
 
-
+@trace
 def get_enable_cgroup_v2_resource_limiting(conf=__conf__):
     """
     If True, the agent will enable resource monitoring and enforcement for the log collector on machines using cgroup v2.

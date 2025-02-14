@@ -29,10 +29,23 @@ from azurelinuxagent.common.osutil import get_osutil
 VMM_CONF_FILE_NAME = "linuxosconfiguration.xml"
 VMM_STARTUP_SCRIPT_NAME= "install"
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_scvmm_handler():
     return ScvmmHandler()
 
 class ScvmmHandler(object):
+
     def __init__(self):
         self.osutil = get_osutil()
 

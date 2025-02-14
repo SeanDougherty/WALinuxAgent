@@ -27,6 +27,15 @@ import zlib
 
 from azurelinuxagent.common.future import ustr
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 def parse_doc(xml_text):
     """
@@ -418,7 +427,6 @@ def str_to_encoded_ustr(s, encoding='utf-8'):
             return ustr(s)
     # For Py2, explicitly convert the string to unicode with the specified encoding
     return ustr(s, encoding=encoding)
-
 
 def format_exception(exception):
     # Function to format exception message

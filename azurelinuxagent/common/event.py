@@ -40,6 +40,17 @@ from azurelinuxagent.common.utils.textutil import parse_doc, findall, find, geta
 from azurelinuxagent.common.version import CURRENT_VERSION, CURRENT_AGENT, AGENT_NAME, DISTRO_NAME, DISTRO_VERSION, DISTRO_CODE_NAME, AGENT_EXECUTION_MODE
 from azurelinuxagent.common.protocol.imds import get_imds_client
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 EVENTS_DIRECTORY = "events"
 
 _EVENT_MSG = "Event: name={0}, op={1}, message={2}, duration={3}"
@@ -61,6 +72,7 @@ MAX_NUMBER_OF_EVENTS = 1000
 AGENT_EVENT_FILE_EXTENSION = '.waagent.tld'
 EVENT_FILE_REGEX = re.compile(r'(?P<agent_event>\.waagent)?\.tld$')
 
+@trace
 def send_logs_to_telemetry():
     return SEND_LOGS_TO_TELEMETRY
 
@@ -147,35 +159,43 @@ SHOULD_ENCODE_MESSAGE_OP = [
 class EventStatus(object):
     EVENT_STATUS_FILE = "event_status.json"
 
+
     def __init__(self):
         self._path = None
         self._status = {}
 
+    @trace
     def clear(self):
         self._status = {}
         self._save()
 
+    @trace
     def event_marked(self, name, version, op):
         return self._event_name(name, version, op) in self._status
 
+    @trace
     def event_succeeded(self, name, version, op):
         event = self._event_name(name, version, op)
         if event not in self._status:
             return True
         return self._status[event] is True
 
+    @trace
     def initialize(self, status_dir=conf.get_lib_dir()):
         self._path = os.path.join(status_dir, EventStatus.EVENT_STATUS_FILE)
         self._load()
 
+    @trace
     def mark_event_status(self, name, version, op, status):
         event = self._event_name(name, version, op)
         self._status[event] = (status is True)
         self._save()
 
+    @trace
     def _event_name(self, name, version, op):
         return "{0}-{1}-{2}".format(name, version, op)
 
+    @trace
     def _load(self):
         try:
             self._status = {}
@@ -186,6 +206,7 @@ class EventStatus(object):
             logger.warn("Exception occurred loading event status: {0}".format(e))
             self._status = {}
 
+    @trace
     def _save(self):
         try:
             with open(self._path, 'w') as f:
@@ -200,6 +221,7 @@ __event_status_operations__ = [
     ]
 
 
+@trace
 def parse_json_event(data_str):
     data = json.loads(data_str)
     event = TelemetryEvent()
@@ -281,7 +303,7 @@ def _encode_message(op, message):
         # The original message was still sent via telemetry, so all is not lost.
         return "<>"
 
-
+@trace
 def _log_event(name, op, message, duration, is_success=True):
     global _EVENT_MSG  # pylint: disable=W0602, W0603
 
@@ -411,6 +433,7 @@ class EventLogger(object):
             logger.warn("Failed to get Processors info; will be missing from telemetry: {0}", ustr(e))
         return 0
 
+    @trace
     def initialize_vminfo_common_parameters(self, protocol):
         """
         Initializes the common parameters that come from the goal state and IMDS
@@ -439,6 +462,7 @@ class EventLogger(object):
         except Exception as e:
             logger.warn("Failed to get IMDS info; will be missing from telemetry: {0}", ustr(e))
 
+    @trace
     def save_event(self, data):
         if self.event_dir is None:
             logger.warn("Cannot save event -- Event reporter is not initialized.")
@@ -490,6 +514,7 @@ class EventLogger(object):
                            version=version, message=message, log_event=log_event)
             self.periodic_events[h] = datetime.now()
 
+    @trace
     def add_event(self, name, op=WALAEventOperation.Unknown, is_success=True, duration=0, version=str(CURRENT_VERSION),
                   message="", log_event=True):
 
@@ -595,6 +620,7 @@ class EventLogger(object):
             else:
                 return message
 
+    @trace
     def add_common_event_parameters(self, event, event_timestamp):
         """
         This method is called for all events and ensures all telemetry fields are added before the event is sent out.
@@ -671,11 +697,11 @@ def report_metric(category, counter, instance, value, log_event=False, reporter=
         logger.periodic_warn(logger.EVERY_HALF_HOUR, "[PERIODIC] Cannot cast the metric value. Details of the Metric - "
                                                      "{0}/{1} [{2}] = {3}".format(category, counter, instance, value))
 
-
+@trace
 def initialize_event_logger_vminfo_common_parameters(protocol, reporter=__event_logger__):
     reporter.initialize_vminfo_common_parameters(protocol)
 
-
+@trace
 def add_event(name=AGENT_NAME, op=WALAEventOperation.Unknown, is_success=True, duration=0, version=str(CURRENT_VERSION),
               message="", log_event=True, reporter=__event_logger__):
     if reporter.event_dir is None:
@@ -689,7 +715,7 @@ def add_event(name=AGENT_NAME, op=WALAEventOperation.Unknown, is_success=True, d
                            message=message,
                            log_event=log_event)
 
-
+@trace
 def add_log_event(level, message, forced=False, reporter=__event_logger__):
     """
     :param level: LoggerLevel of the log event
@@ -708,7 +734,7 @@ def add_log_event(level, message, forced=False, reporter=__event_logger__):
     if level >= logger.LogLevel.WARNING:
         reporter.add_log_event(level, message)
 
-
+@trace
 def add_periodic(delta, name, op=WALAEventOperation.Unknown, is_success=True, duration=0, version=str(CURRENT_VERSION),
                  message="", log_event=True, force=False, reporter=__event_logger__):
     if reporter.event_dir is None:
@@ -719,12 +745,12 @@ def add_periodic(delta, name, op=WALAEventOperation.Unknown, is_success=True, du
     reporter.add_periodic(delta, name, op=op, is_success=is_success, duration=duration, version=str(version),
                           message=message, log_event=log_event, force=force)
 
-
+@trace
 def mark_event_status(name, version, op, status):
     if op in __event_status_operations__:
         __event_status__.mark_event_status(name, version, op, status)
 
-
+@trace
 def should_emit_event(name, version, op, status):
     return \
         op not in __event_status_operations__ or \
@@ -732,15 +758,15 @@ def should_emit_event(name, version, op, status):
         not __event_status__.event_marked(name, version, op) or \
         __event_status__.event_succeeded(name, version, op) != status
 
-
+@trace
 def init_event_logger(event_dir):
     __event_logger__.event_dir = event_dir
 
-
+@trace
 def init_event_status(status_dir):
     __event_status__.initialize(status_dir)
 
-
+@trace
 def dump_unhandled_err(name):
     if hasattr(sys, 'last_type') and hasattr(sys, 'last_value') and \
             hasattr(sys, 'last_traceback'):
@@ -753,6 +779,6 @@ def dump_unhandled_err(name):
         add_event(name, is_success=False, message=message,
                   op=WALAEventOperation.UnhandledError)
 
-
+@trace
 def enable_unhandled_err_dump(name):
     atexit.register(dump_unhandled_err, name)

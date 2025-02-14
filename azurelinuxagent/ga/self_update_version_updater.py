@@ -26,6 +26,16 @@ from azurelinuxagent.common.version import CURRENT_VERSION
 from azurelinuxagent.ga.ga_version_updater import GAVersionUpdater
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class SelfUpdateType(object):
     """
     Enum for different modes of Self updates
@@ -35,6 +45,7 @@ class SelfUpdateType(object):
 
 
 class SelfUpdateVersionUpdater(GAVersionUpdater):
+
     def __init__(self, gs_id):
         super(SelfUpdateVersionUpdater, self).__init__(gs_id)
         self._last_attempted_manifest_download_time = datetime.datetime.min

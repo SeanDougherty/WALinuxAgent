@@ -28,6 +28,17 @@ from azurelinuxagent.ga.interfaces import ThreadHandlerInterface
 from azurelinuxagent.common.utils import textutil
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_send_telemetry_events_handler(protocol_util):
     return SendTelemetryEventsHandler(protocol_util)
 

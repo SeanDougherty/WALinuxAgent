@@ -38,11 +38,23 @@ MAX_TRY_ATTEMPT = 5
 FAILED_ATTEMPT_THROTTLE = 1
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_remote_access_handler(protocol):
     return RemoteAccessHandler(protocol)
 
 
 class RemoteAccessHandler(object): 
+
     def __init__(self, protocol):
         self._os_util = get_osutil()
         self._protocol = protocol

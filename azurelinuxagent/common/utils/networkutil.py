@@ -21,6 +21,17 @@ from azurelinuxagent.common.utils import shellutil
 from azurelinuxagent.common.utils.shellutil import CommandError
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+
 class RouteEntry(object):
     """
     Represents a single route. The destination, gateway, and mask members are hex representations of the IPv4 address in
@@ -159,6 +170,7 @@ class AddFirewallRules(object):
     def __get_common_command_params(command, destination):
         return ["-t", "security", command, "OUTPUT", "-d", destination, "-p", "tcp"]
 
+
     @staticmethod
     def __get_firewall_base_command(command, destination, firewalld_command="", wait=""):
         # Firewalld.service fails if we set `-w` in the iptables command, so not adding it at all for firewalld commands
@@ -168,6 +180,7 @@ class AddFirewallRules(object):
             cmd = AddFirewallRules.__get_iptables_base_command(wait)
         cmd.extend(AddFirewallRules.__get_common_command_params(command, destination))
         return cmd
+
 
     @staticmethod
     def get_accept_tcp_rule(command, destination, firewalld_command="", wait=""):
@@ -187,6 +200,7 @@ class AddFirewallRules(object):
         cmd = AddFirewallRules.__get_firewall_base_command(command, destination, firewalld_command, wait)
         cmd.extend(["-m", "conntrack", "--ctstate", "INVALID,NEW", "-j", "DROP"])
         return cmd
+
 
     @staticmethod
     def __raise_if_empty(val, name):
@@ -234,6 +248,7 @@ class AddFirewallRules(object):
 
         return missing
 
+
     @staticmethod
     def __execute_firewall_commands(dst_ip, uid, command=APPEND_COMMAND, firewalld_command="", wait=""):
         # The order in which the below rules are added matters for the ip table rules to work as expected
@@ -262,6 +277,7 @@ class AddFirewallRules(object):
         # Firewalld.service with the "--permanent --passthrough" parameter ensures that a firewall rule is set only once even if command is executed multiple times
 
         AddFirewallRules.__execute_firewall_commands(dst_ip, uid, firewalld_command=FirewallCmdDirectCommands.PassThrough)
+
 
     @staticmethod
     def check_firewalld_rule_applied(dst_ip, uid):

@@ -25,13 +25,24 @@ import azurelinuxagent.common.utils.shellutil as shellutil
 from azurelinuxagent.common.utils.flexible_version import FlexibleVersion
 from azurelinuxagent.common.future import ustr, get_linux_distribution
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 __DAEMON_VERSION_ENV_VARIABLE = '_AZURE_GUEST_AGENT_DAEMON_VERSION_'
 """
     The daemon process sets this variable's value to the daemon's version number.
     The variable is set only on versions >= 2.2.53
 """
 
-
+@trace
 def set_daemon_version(version):
     """
     Sets the value of the _AZURE_GUEST_AGENT_DAEMON_VERSION_ environment variable.
@@ -158,7 +169,7 @@ def get_distro():
 COMMAND_ABSENT = ustr("Absent")
 COMMAND_FAILED = ustr("Failed")
 
-
+@trace
 def get_lis_version():
     """
     This uses the Linux kernel's 'modinfo' command to retrieve the
@@ -189,6 +200,7 @@ def get_lis_version():
         # imported in this module or we'd log this too.
         return COMMAND_FAILED
 
+@trace
 def has_logrotate():
     try:
         logrotate_version = shellutil.run_command(["logrotate", "--version"]).split("\n")[0]
@@ -260,12 +272,12 @@ def set_current_agent():
         version = AGENT_VERSION
     return agent, FlexibleVersion(version)
 
-
+@trace
 def is_agent_package(path):
     path = os.path.basename(path)
     return not re.match(AGENT_PKG_PATTERN, path) is None
 
-
+@trace
 def is_agent_path(path):
     path = os.path.basename(path)
     return not re.match(AGENT_NAME_PATTERN, path) is None

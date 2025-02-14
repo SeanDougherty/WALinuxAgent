@@ -45,6 +45,17 @@ from azurelinuxagent.pa.rdma import get_rdma_handler
 OPENSSL_FIPS_ENVIRONMENT = "OPENSSL_FIPS"
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_daemon_handler():
     return DaemonHandler()
 
@@ -54,10 +65,12 @@ class DaemonHandler(object):
     Main thread of daemon. It will invoke other threads to do actual work
     """
 
+
     def __init__(self):
         self.running = True
         self.osutil = get_osutil()
 
+    @trace
     def run(self, child_args=None):
         #
         # The Container ID in telemetry events is retrieved from the goal state. We can fetch the goal state
@@ -88,6 +101,7 @@ class DaemonHandler(object):
                 logger.warn("Daemon ended with exception -- Sleep 15 seconds and restart daemon")
                 time.sleep(15)
 
+    @trace
     def check_pid(self):
         """Check whether daemon is already running"""
         pid = None
@@ -101,6 +115,7 @@ class DaemonHandler(object):
 
         fileutil.write_file(pid_file, ustr(os.getpid()))
 
+    @trace
     def sleep_if_disabled(self):
         agent_disabled_file_path = conf.get_disable_agent_file_path()
         if os.path.exists(agent_disabled_file_path):
@@ -111,16 +126,19 @@ class DaemonHandler(object):
             disable_event = threading.Event()
             disable_event.wait()
 
+    @trace
     def initialize_environment(self):
         # Create lib dir
         if not os.path.isdir(conf.get_lib_dir()):
             fileutil.mkdir(conf.get_lib_dir(), mode=0o700)
             os.chdir(conf.get_lib_dir())
 
+    @trace
     def _initialize_telemetry(self):
         protocol = self.protocol_util.get_protocol()
         initialize_event_logger_vminfo_common_parameters(protocol)
 
+    @trace
     def daemon(self, child_args=None):
         logger.info("Run daemon")
 

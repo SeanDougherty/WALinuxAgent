@@ -37,10 +37,20 @@ from azurelinuxagent.common.utils.shellutil import CommandError
 from azurelinuxagent.common.version import PY_VERSION_MAJOR, PY_VERSION_MINOR, AGENT_NAME, CURRENT_VERSION
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        logger.info(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        logger.info(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+@trace
 def get_collect_logs_handler():
     return CollectLogsHandler()
 
-
+@trace
 def is_log_collection_allowed():
     # There are three conditions that need to be met in order to allow periodic log collection:
     # 1) It should be enabled in the configuration.
