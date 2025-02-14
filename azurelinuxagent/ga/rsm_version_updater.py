@@ -27,8 +27,18 @@ from azurelinuxagent.common.version import CURRENT_VERSION, AGENT_NAME
 from azurelinuxagent.ga.ga_version_updater import GAVersionUpdater
 from azurelinuxagent.ga.guestagent import GuestAgent
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class RSMVersionUpdater(GAVersionUpdater):
+    @trace
     def __init__(self, gs_id, daemon_version):
         super(RSMVersionUpdater, self).__init__(gs_id)
         self._daemon_version = daemon_version

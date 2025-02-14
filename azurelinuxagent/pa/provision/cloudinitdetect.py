@@ -3,6 +3,17 @@
 import subprocess
 import azurelinuxagent.common.logger as logger
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+@trace
 def _cloud_init_is_enabled_systemd():
     """
     Determine whether or not cloud-init is enabled on a systemd machine.
@@ -29,6 +40,7 @@ def _cloud_init_is_enabled_systemd():
 
     return unit_is_enabled
 
+@trace
 def _cloud_init_is_enabled_service():
     """
     Determine whether or not cloud-init is enabled on a non-systemd machine.
@@ -55,6 +67,7 @@ def _cloud_init_is_enabled_service():
 
     return unit_is_enabled
 
+@trace
 def cloud_init_is_enabled():
     """
     Determine whether or not cloud-init is enabled.

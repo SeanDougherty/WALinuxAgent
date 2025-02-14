@@ -26,6 +26,16 @@ from azurelinuxagent.common.utils.textutil import getattrib
 from azurelinuxagent.common.version import DISTRO_VERSION, DISTRO_NAME, CURRENT_VERSION
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 VERSION_0 = "0.0.0.0"
 
 
@@ -152,6 +162,7 @@ class Extension(object):
     Eg: Microsoft.OSTC.CustomScript
     """
 
+    @trace
     def __init__(self, name=None):
         self.name = name
         self.version = None

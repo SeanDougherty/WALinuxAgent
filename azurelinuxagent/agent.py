@@ -54,6 +54,15 @@ from azurelinuxagent.ga.collect_logs import CollectLogsHandler, get_log_collecto
 from azurelinuxagent.pa.provision.default import ProvisionHandler
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class AgentCommands(object):
     """
     This is the list of all commands that the Linux Guest Agent supports
@@ -73,6 +82,7 @@ class AgentCommands(object):
 
 
 class Agent(object):
+    @trace
     def __init__(self, verbose, conf_file_path=None):
         """
         Initialize agent running environment.
@@ -126,9 +136,11 @@ class Agent(object):
         event.init_event_logger(event_dir)
         event.enable_unhandled_err_dump("WALA")
 
+    @trace
     def __add_console_appender(self, level):
         logger.add_logger_appender(logger.AppenderType.CONSOLE, level, path="/dev/console")
 
+    @trace
     def daemon(self):
         """
         Run agent daemon
@@ -170,6 +182,7 @@ class Agent(object):
         print("Start {0} service".format(AGENT_NAME))
         self.osutil.start_agent_service()
 
+    @trace
     def run_exthandlers(self, debug=False):
         """
         Run the update and extension handler
@@ -281,7 +294,7 @@ class Agent(object):
             print("Unable to add firewall rules. Error: {0}".format(ustr(error)))
             sys.exit(1)
 
-
+@trace
 def main(args=None):
     """
     Parse command line arguments, exit with usage() on error.

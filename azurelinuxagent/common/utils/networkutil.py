@@ -21,6 +21,17 @@ from azurelinuxagent.common.utils import shellutil
 from azurelinuxagent.common.utils.shellutil import CommandError
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+
 class RouteEntry(object):
     """
     Represents a single route. The destination, gateway, and mask members are hex representations of the IPv4 address in
@@ -159,6 +170,7 @@ class AddFirewallRules(object):
     def __get_common_command_params(command, destination):
         return ["-t", "security", command, "OUTPUT", "-d", destination, "-p", "tcp"]
 
+    @trace
     @staticmethod
     def __get_firewall_base_command(command, destination, firewalld_command="", wait=""):
         # Firewalld.service fails if we set `-w` in the iptables command, so not adding it at all for firewalld commands
@@ -169,6 +181,7 @@ class AddFirewallRules(object):
         cmd.extend(AddFirewallRules.__get_common_command_params(command, destination))
         return cmd
 
+    @trace
     @staticmethod
     def get_accept_tcp_rule(command, destination, firewalld_command="", wait=""):
         # This rule allows DNS TCP request to wireserver ip for non root users
@@ -188,6 +201,7 @@ class AddFirewallRules(object):
         cmd.extend(["-m", "conntrack", "--ctstate", "INVALID,NEW", "-j", "DROP"])
         return cmd
 
+    @trace
     @staticmethod
     def __raise_if_empty(val, name):
         if val == "":
@@ -234,6 +248,7 @@ class AddFirewallRules(object):
 
         return missing
 
+    @trace
     @staticmethod
     def __execute_firewall_commands(dst_ip, uid, command=APPEND_COMMAND, firewalld_command="", wait=""):
         # The order in which the below rules are added matters for the ip table rules to work as expected
@@ -263,6 +278,7 @@ class AddFirewallRules(object):
 
         AddFirewallRules.__execute_firewall_commands(dst_ip, uid, firewalld_command=FirewallCmdDirectCommands.PassThrough)
 
+    @trace
     @staticmethod
     def check_firewalld_rule_applied(dst_ip, uid):
         AddFirewallRules.__execute_firewall_commands(dst_ip, uid, firewalld_command=FirewallCmdDirectCommands.QueryPassThrough)

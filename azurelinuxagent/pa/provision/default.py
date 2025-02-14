@@ -48,12 +48,32 @@ CLOUD_INIT_REGEX = re.compile(CLOUD_INIT_PATTERN)
 
 PROVISIONED_FILE = 'provisioned'
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
 class ProvisionHandler(object):
+    @trace
     def __init__(self):
         self.osutil = get_osutil()
         self.protocol_util = get_protocol_util()
 
+    @trace
     def run(self):
         if not conf.get_provision_enabled():
             logger.info("Provisioning is disabled, skipping.")
@@ -146,6 +166,7 @@ class ProvisionHandler(object):
     def provisioned_file_path():
         return os.path.join(conf.get_lib_dir(), PROVISIONED_FILE)
 
+    @trace
     @staticmethod
     def is_provisioned():
         """

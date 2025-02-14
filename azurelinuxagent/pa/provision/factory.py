@@ -23,6 +23,18 @@ from azurelinuxagent.common.version import DISTRO_NAME, DISTRO_VERSION, \
 from .default import ProvisionHandler
 from .cloudinit import CloudInitProvisionHandler, cloud_init_is_enabled
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_provision_handler(distro_name=DISTRO_NAME,  # pylint: disable=W0613
                             distro_version=DISTRO_VERSION,  # pylint: disable=W0613
                             distro_full_name=DISTRO_FULL_NAME):  # pylint: disable=W0613

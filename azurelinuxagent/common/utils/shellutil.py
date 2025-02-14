@@ -22,6 +22,17 @@ import sys
 import tempfile
 import threading
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 if sys.version_info[0] == 2:
     # TimeoutExpired was introduced on Python 3; define a dummy class for Python 2
     class TimeoutExpired(Exception):
@@ -91,7 +102,7 @@ def run(cmd, chk_err=True, expected_errors=None):
     retcode, out = run_get_output(cmd, chk_err=chk_err, expected_errors=expected_errors)  # pylint: disable=W0612
     return retcode
 
-
+@trace
 def run_get_output(cmd, chk_err=True, log_cmd=True, expected_errors=None):
     """
     Wrapper for subprocess.check_output.
@@ -214,6 +225,7 @@ def __run_command(command_action, command, log_error, encode_output):
 
 
 # W0622: Redefining built-in 'input'  -- disabled: the parameter name mimics subprocess.communicate()
+@trace
 def run_command(command, input=None, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, log_error=False, encode_input=True, encode_output=True, track_process=True, timeout=None):  # pylint:disable=W0622
     """
         Executes the given command and returns its stdout.

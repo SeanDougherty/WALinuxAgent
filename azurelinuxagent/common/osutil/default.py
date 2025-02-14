@@ -138,16 +138,25 @@ IP_COMMAND_OUTPUT = re.compile(r'^\d+:\s+(\w+):\s+(.*)$')
 
 STORAGE_DEVICE_PATH = '/sys/bus/vmbus/devices/'
 GEN2_DEVICE_ID = 'f8b3781a-1e82-4818-a1c3-63d806ec15bb'
-
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
 class DefaultOSUtil(object):
+    @trace
     def __init__(self):
         self.agent_conf_file_path = '/etc/waagent.conf'
         self.selinux = None
         self.disable_route_warning = False
         self.jit_enabled = False
         self.service_name = self.get_service_name()
-
+    
+    @trace
     @staticmethod
     def get_service_name():
         return "waagent"

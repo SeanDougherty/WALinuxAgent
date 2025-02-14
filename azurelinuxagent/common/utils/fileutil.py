@@ -33,6 +33,15 @@ import azurelinuxagent.common.utils.textutil as textutil
 
 from azurelinuxagent.common.future import ustr
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 KNOWN_IOERRORS = [
     errno.EIO,          # I/O error
     errno.ENOMEM,       # Out of memory
@@ -44,7 +53,7 @@ KNOWN_IOERRORS = [
     121                 # Remote I/O error (errno.EREMOTEIO -- not present in all Python 2.7+)
 ]
 
-
+@trace
 def read_file(filepath, asbin=False, remove_bom=False, encoding='utf-8'):
     """
     Read and return contents of 'filepath'.
@@ -98,7 +107,7 @@ def get_line_startingwith(prefix, filepath):
             return line
     return None
 
-
+@trace
 def mkdir(dirpath, mode=None, owner=None, reset_mode_and_owner=True):
     if not os.path.isdir(dirpath):
         os.makedirs(dirpath)

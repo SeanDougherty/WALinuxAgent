@@ -40,8 +40,16 @@ from .photonos import PhotonOSUtil
 from .ubuntu import UbuntuOSUtil, Ubuntu12OSUtil, Ubuntu14OSUtil, \
     UbuntuSnappyOSUtil, Ubuntu16OSUtil, Ubuntu18OSUtil
 from .fedora import FedoraOSUtil
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
-
+@trace
 def get_osutil(distro_name=DISTRO_NAME,
                distro_code_name=DISTRO_CODE_NAME,
                distro_version=DISTRO_VERSION,
@@ -52,7 +60,7 @@ def get_osutil(distro_name=DISTRO_NAME,
     # it globally. Instead, we add _get_osutil function and mock it in the test base class, AgentTestCase.
     return _get_osutil(distro_name, distro_code_name, distro_version, distro_full_name)
 
-
+@trace
 def _get_osutil(distro_name, distro_code_name, distro_version, distro_full_name):
 
     if distro_name == "photonos":

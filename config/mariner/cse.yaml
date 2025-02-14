@@ -10,18 +10,18 @@ spec:
     command: [ "/bin/bash", "-c" ]
     args:
       - echo starting;
-        /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/bin/custom-script-shim install;
-        /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/bin/custom-script-shim enable;
+        /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/bin/custom-script-shim install;
+        /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/bin/custom-script-shim enable;
     securityContext:
       privileged: true
     volumeMounts:
-    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/status/
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/status/
       name: cse
       subPath: status
-    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/config/
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/config/
       name: cse
       subPath: config
-    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/HandlerEnvironment.json
+    - mountPath: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/HandlerEnvironment.json
       name: cse
       subPath: HandlerEnvironment.json
     - mountPath: /host
@@ -29,7 +29,7 @@ spec:
   volumes:
   - name: cse
     hostPath:
-      path: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.10/
+      path: /var/lib/waagent/Microsoft.Azure.Extensions.CustomScript-2.1.13/
       type: Directory
   - name: host
     hostPath:

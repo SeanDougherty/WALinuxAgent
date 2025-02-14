@@ -27,6 +27,15 @@ import zlib
 
 from azurelinuxagent.common.future import ustr
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 def parse_doc(xml_text):
     """
@@ -259,7 +268,7 @@ def set_ini_config(config, name, val):
     if notfound:
         config.insert(length - 1, text)
 
-
+@trace
 def replace_non_ascii(incoming, replace_char=''):
     outgoing = ''
     if incoming is not None:
@@ -270,7 +279,7 @@ def replace_non_ascii(incoming, replace_char=''):
                 outgoing += c
     return outgoing
 
-
+@trace
 def remove_bom(c):
     """
     bom is comprised of a sequence of three chars,0xef, 0xbb, 0xbf, in case of utf-8.
@@ -353,7 +362,7 @@ def parse_json(json_str):
 
     return result
 
-
+@trace
 def is_str_none_or_whitespace(s):
     return s is None or len(s) == 0 or s.isspace()
 
@@ -419,7 +428,7 @@ def str_to_encoded_ustr(s, encoding='utf-8'):
     # For Py2, explicitly convert the string to unicode with the specified encoding
     return ustr(s, encoding=encoding)
 
-
+@trace
 def format_exception(exception):
     # Function to format exception message
     e = None

@@ -36,8 +36,18 @@ from azurelinuxagent.common.protocol.ovfenv import OvfEnv
 from azurelinuxagent.pa.provision.default import ProvisionHandler
 from azurelinuxagent.pa.provision.cloudinitdetect import cloud_init_is_enabled
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class CloudInitProvisionHandler(ProvisionHandler):
+    @trace
     def __init__(self):  # pylint: disable=W0235
         super(CloudInitProvisionHandler, self).__init__()
 

@@ -19,6 +19,15 @@
 
 import re
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class FlexibleVersion(object):
     """
@@ -42,7 +51,7 @@ class FlexibleVersion(object):
     Inspiration from this discussion at StackOverflow:
         http://stackoverflow.com/questions/12255554/sort-versions-in-python
     """
-
+    @trace
     def __init__(self, vstring=None, sep='.', prerel_tags=('alpha', 'beta', 'rc')):
         if sep is None:
             sep = '.'
@@ -190,6 +199,7 @@ class FlexibleVersion(object):
                 s += str(prerelease[1])
         return s
 
+    @trace
     def _compile_pattern(self):
         sep, self.sep_re = self._compile_separator(self.sep)
 
@@ -211,6 +221,7 @@ class FlexibleVersion(object):
         self.version_re = re.compile(version_re)
         return
 
+    @trace
     def _compile_separator(self, sep):
         if sep is None:
             return '', re.compile('')

@@ -35,7 +35,16 @@ dapl_config_paths = [
     '/usr/local/etc/dat.conf'
 ]
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
 
+@trace
 def setup_rdma_device(nd_version, shared_conf):
     logger.verbose("Parsing SharedConfig XML contents for RDMA details")
     xml_doc = parse_doc(shared_conf.xml_text)
@@ -76,6 +85,7 @@ class RDMAHandler(object):
     driver_module_name = 'hv_network_direct'
     nd_version = None
 
+    @trace
     def get_rdma_version(self):  # pylint: disable=R1710
         """Retrieve the firmware version information from the system.
            This depends on information provided by the Linux kernel."""
@@ -115,6 +125,7 @@ class RDMAHandler(object):
         logger.error(error_msg % driver_info_source)
         return
 
+    @trace
     @staticmethod
     def is_kvp_daemon_running():
         """Look for kvp daemon names in ps -ef output and return True/False
@@ -134,6 +145,7 @@ class RDMAHandler(object):
                 logger.verbose('RDMA: kvp daemon (%s) is not running' % n)
         return False
 
+    @trace
     def load_driver_module(self):
         """Load the kernel driver, this depends on the proper driver
            to be installed with the install_driver() method"""
@@ -149,6 +161,7 @@ class RDMAHandler(object):
         logger.info('RDMA: Loaded the kernel driver successfully.')
         return True
 
+    @trace
     def install_driver_if_needed(self):
         if self.nd_version:
             if conf.enable_check_rdma_driver():
@@ -158,11 +171,13 @@ class RDMAHandler(object):
         else:
             logger.info('RDMA: skip installing driver when ndversion not present\n')
 
+    @trace
     def install_driver(self):
         """Install the driver. This is distribution specific and must
            be overwritten in the child implementation."""
         logger.error('RDMAHandler.install_driver not implemented')
 
+    @trace
     def is_driver_loaded(self):
         """Check if the network module is loaded in kernel space"""
         cmd = 'lsmod | grep ^%s' % self.driver_module_name
@@ -174,6 +189,7 @@ class RDMAHandler(object):
         logger.info('RDMA: module not loaded.')
         return False
 
+    @trace
     def reboot_system(self):
         """Reboot the system. This is required as the kernel module for
            the rdma driver cannot be unloaded with rmmod"""

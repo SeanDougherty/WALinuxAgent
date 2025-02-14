@@ -28,6 +28,17 @@ from azurelinuxagent.common.utils.networkutil import AddFirewallRules
 from azurelinuxagent.common.utils.shellutil import CommandError
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+
 class PersistFirewallRulesHandler(object):
 
     __SERVICE_FILE_CONTENT = """
@@ -78,6 +89,7 @@ if __name__ == '__main__':
         service_name = PersistFirewallRulesHandler._AGENT_NETWORK_SETUP_NAME_FORMAT.format(osutil.get_service_name())
         return os.path.join(osutil.get_systemd_unit_file_install_path(), service_name)
 
+    @trace
     def __init__(self, dst_ip, uid):
         """
         This class deals with ensuring that Firewall rules are persisted over system reboots.
@@ -95,6 +107,7 @@ if __name__ == '__main__':
         # The custom service will try to call the current agent executable to setup the firewall rules
         self._current_agent_executable_path = os.path.join(os.getcwd(), sys.argv[0])
 
+    @trace
     @staticmethod
     def _is_firewall_service_running():
         # Check if firewall-cmd can connect to the daemon
@@ -108,6 +121,7 @@ if __name__ == '__main__':
             logger.verbose("{0} command failed: {1}".format(' '.join(firewalld_state), ustr(error)))
         return False
 
+    @trace
     def setup(self):
         if not systemd.is_systemd():
             logger.warn("Did not detect Systemd, unable to set {0}".format(self._network_setup_service_name))
@@ -132,6 +146,7 @@ if __name__ == '__main__':
 
         self._setup_network_setup_service()
 
+    @trace
     def __verify_firewall_rules_enabled(self):
         # Check if firewall-rules have already been enabled
         # This function would also return False if the dest-ip is changed. So no need to check separately for that
@@ -151,6 +166,7 @@ if __name__ == '__main__':
             logger.warn(
                 "failed to remove rule using firewalld.service: {0}".format(ustr(error)))
 
+    @trace
     def _setup_permanent_firewalld_rules(self):
         if self.__verify_firewall_rules_enabled():
             logger.info("Firewall rules already set. No change needed.")

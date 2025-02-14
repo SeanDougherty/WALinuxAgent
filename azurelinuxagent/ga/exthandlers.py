@@ -86,6 +86,17 @@ _STATUS_FILE_RETRY_DELAY = 2  # seconds
 _DEFAULT_SEQ_NO = "0"
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+
 class ExtHandlerStatusValue(object):
     """
     Statuses for Extension Handlers
@@ -190,7 +201,7 @@ def parse_ext_status(ext_status, data):
         if substatus is not None:
             ext_status.substatusList.append(parse_ext_substatus(substatus))
 
-
+@trace
 def migrate_handler_state():
     """
     Migrate handler state and status (if they exist) from an agent-owned directory into the
@@ -252,11 +263,11 @@ class GoalStateStatus(object):
     Initialize = "Initialize"
     Transitioning = "Transitioning"
 
-
+@trace
 def get_exthandlers_handler(protocol):
     return ExtHandlersHandler(protocol)
 
-
+@trace
 def list_agent_lib_directory(skip_agent_package=True, ignore_names=None):
     lib_dir = conf.get_lib_dir()
     for name in os.listdir(lib_dir):
@@ -272,6 +283,7 @@ def list_agent_lib_directory(skip_agent_package=True, ignore_names=None):
 
 
 class ExtHandlersHandler(object):
+    @trace
     def __init__(self, protocol):
         self.protocol = protocol
         self.ext_handlers = None
@@ -364,6 +376,7 @@ class ExtHandlersHandler(object):
                       message=msg,
                       log_event=False)
 
+    @trace
     @staticmethod
     def get_ext_handler_instance_from_path(name, path, protocol, skip_handlers=None):
         if not os.path.isdir(path) or re.match(HANDLER_NAME_PATTERN, name) is None:
@@ -1008,7 +1021,7 @@ class ExtHandlersHandler(object):
 
 
 class ExtHandlerInstance(object):
-
+    @trace
     def __init__(self, ext_handler, protocol, execution_log_max_size=(10 * 1024 * 1024), extension=None):
         self.ext_handler = ext_handler
         self.protocol = protocol
@@ -1018,6 +1031,7 @@ class ExtHandlerInstance(object):
         self.logger = None
         self.set_logger(extension=extension, execution_log_max_size=execution_log_max_size)
 
+    @trace
     @property
     def supports_multi_config(self):
         return self.ext_handler.supports_multi_config
@@ -1037,6 +1051,7 @@ class ExtHandlerInstance(object):
             return [ext for ext in self.extensions if self.get_extension_state(ext) == ExtensionState.Enabled]
         return self.extensions
 
+    @trace
     def get_extension_full_name(self, extension=None):
         """
         Get the full name of the extension <HandlerName>.<ExtensionName>.
@@ -1366,6 +1381,7 @@ class ExtHandlerInstance(object):
         self.set_handler_state(ExtHandlerState.Enabled)
         self.set_handler_status(status=ExtHandlerStatusValue.ready, message="Plugin enabled")
 
+    @trace
     def should_perform_multi_config_op(self, extension):
         return self.supports_multi_config and extension is not None
 
@@ -1972,6 +1988,7 @@ class ExtHandlerInstance(object):
         self.logger.info("Update settings file: {0}", settings_file)
         self.update_settings_file(settings_file, json.dumps(ext_settings))
 
+    @trace
     def create_handler_env(self):
         handler_env = {
                 HandlerEnvironment.logFolder: self.get_log_dir(),
@@ -2114,6 +2131,7 @@ class ExtHandlerInstance(object):
                                     self.ext_handler.version,
                                     HANDLER_PKG_EXT)
 
+    @trace
     def get_full_name(self, extension=None):
         """
         :return: <HandlerName>-<HandlerVersion> if extension is None or Handler does not support Multi Config,
@@ -2121,27 +2139,35 @@ class ExtHandlerInstance(object):
         """
         return "{0}-{1}".format(self.get_extension_full_name(extension), self.ext_handler.version)
 
+    @trace
     def get_base_dir(self):
         return os.path.join(conf.get_lib_dir(), self.get_full_name())
 
+    @trace
     def get_status_dir(self):
         return os.path.join(self.get_base_dir(), "status")
 
+    @trace
     def get_conf_dir(self):
         return os.path.join(self.get_base_dir(), 'config')
 
+    @trace
     def get_extension_events_dir(self):
         return os.path.join(self.get_log_dir(), EVENTS_DIRECTORY)
 
+    @trace
     def get_heartbeat_file(self):
         return os.path.join(self.get_base_dir(), 'heartbeat.log')
 
+    @trace
     def get_manifest_file(self):
         return os.path.join(self.get_base_dir(), 'HandlerManifest.json')
 
+    @trace
     def get_env_file(self):
         return os.path.join(self.get_base_dir(), HandlerEnvironment.fileName)
 
+    @trace
     def get_log_dir(self):
         return os.path.join(conf.get_ext_log_dir(), self.ext_handler.name)
 

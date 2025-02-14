@@ -20,6 +20,15 @@
 from azurelinuxagent.common.datacontract import DataContract, DataContractList
 from azurelinuxagent.common.version import AGENT_NAME
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class CommonTelemetryEventSchema(object):
 
@@ -79,6 +88,7 @@ class GuestAgentPerfCounterEventsSchema(CommonTelemetryEventSchema):
 
 
 class TelemetryEventParam(DataContract):
+    @trace
     def __init__(self, name=None, value=None):
         self.name = name
         self.value = value
@@ -88,6 +98,7 @@ class TelemetryEventParam(DataContract):
 
 
 class TelemetryEvent(DataContract):
+    @trace
     def __init__(self, eventId=None, providerId=None):
         self.eventId = eventId
         self.providerId = providerId

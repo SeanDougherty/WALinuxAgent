@@ -17,6 +17,15 @@
 from azurelinuxagent.common import conf
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class SupportedFeatureNames(object):
     """
     Enum for defining the Feature Names for all features that we the agent supports
@@ -105,7 +114,7 @@ __EXTENSION_ADVERTISED_FEATURES = {
     SupportedFeatureNames.ExtensionTelemetryPipeline: _ETPFeature()
 }
 
-
+@trace
 def get_supported_feature_by_name(feature_name):
     if feature_name in __CRP_ADVERTISED_FEATURES:
         return __CRP_ADVERTISED_FEATURES[feature_name]

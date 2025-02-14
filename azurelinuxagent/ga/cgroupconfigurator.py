@@ -103,6 +103,15 @@ _DROP_IN_FILE_MEMORY_ACCOUNTING_CONTENTS = """
 MemoryAccounting=yes
 """
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class DisableCgroups(object):
     ALL = "all"
@@ -995,6 +1004,7 @@ class CGroupConfigurator(object):
     # unique instance for the singleton
     _instance = None
 
+    @trace
     @staticmethod
     def get_instance():
         if CGroupConfigurator._instance is None:

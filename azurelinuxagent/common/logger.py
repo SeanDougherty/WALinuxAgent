@@ -31,6 +31,15 @@ EVERY_HALF_HOUR = timedelta(minutes=30)
 EVERY_FIFTEEN_MINUTES = timedelta(minutes=15)
 EVERY_MINUTE = timedelta(minutes=1)
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 
 class Logger(object):
     """
@@ -165,6 +174,7 @@ class Logger(object):
                 # TODO: call write_log instead (see comment above)
                 #
 
+    @trace
     def add_appender(self, appender_type, level, path):
         appender = _create_logger_appender(appender_type, level, path)
         self.appenders.append(appender)
@@ -267,15 +277,15 @@ class AppenderType(object):
     STDOUT = 2
     TELEMETRY = 3
 
-
+@trace
 def add_logger_appender(appender_type, level=LogLevel.INFO, path=None):
     DEFAULT_LOGGER.add_appender(appender_type, level, path)
 
-
+@trace
 def console_output_enabled():
     return DEFAULT_LOGGER.console_output_enabled()
 
-
+@trace
 def disable_console_output():
     DEFAULT_LOGGER.disable_console_output()
 
@@ -311,7 +321,7 @@ def periodic_error(delta, msg_format, *args):
     """
     DEFAULT_LOGGER.periodic_error(delta, msg_format, *args)
 
-
+@trace
 def periodic_warn(delta, msg_format, *args):
     """
     The hash-map maintaining the state of the logs gets reset here -
@@ -339,7 +349,7 @@ def error(msg_format, *args):
 def log(level, msg_format, *args):
     DEFAULT_LOGGER.log(level, msg_format, args)
 
-
+@trace
 def _create_logger_appender(appender_type, level=LogLevel.INFO, path=None):
     if appender_type == AppenderType.CONSOLE:
         return ConsoleAppender(level, path)

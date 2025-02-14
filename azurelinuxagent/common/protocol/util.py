@@ -49,6 +49,17 @@ PASSWORD_PATTERN = "<UserPassword>.*?<"
 PASSWORD_REPLACEMENT = "<UserPassword>*<"
 WIRE_PROTOCOL_NAME = "WireProtocol"
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def get_protocol_util():
     return ProtocolUtil()
 
@@ -60,7 +71,7 @@ class ProtocolUtil(SingletonPerThread):
     Note: ProtocolUtil is a sub class of SingletonPerThread, this basically means that there would only be 1 single
     instance of ProtocolUtil object per thread.
     """
-
+    @trace
     def __init__(self):
         self._lock = threading.RLock()  # protects the files on disk created during protocol detection
         self._protocol = None
@@ -124,16 +135,19 @@ class ProtocolUtil(SingletonPerThread):
             raise ProtocolError(
                 "ovf-env.xml is missing from {0}".format(ovf_file_path))
 
+    @trace
     def _get_protocol_file_path(self):
         return os.path.join(
             conf.get_lib_dir(),
             PROTOCOL_FILE_NAME)
 
+    @trace
     def _get_wireserver_endpoint_file_path(self):
         return os.path.join(
             conf.get_lib_dir(),
             ENDPOINT_FILE_NAME)
 
+    @trace
     def get_wireserver_endpoint(self):
         self._lock.acquire()
         try:
@@ -162,6 +176,7 @@ class ProtocolUtil(SingletonPerThread):
         finally:
             self._lock.release()
 
+    @trace
     def _set_wireserver_endpoint(self, endpoint):
         try:
             self.endpoint = endpoint
@@ -170,6 +185,7 @@ class ProtocolUtil(SingletonPerThread):
         except (IOError, OSError) as e:
             raise OSUtilError(ustr(e))
 
+    @trace
     def _clear_wireserver_endpoint(self):
         """
         Cleanup previous saved wireserver endpoint.
@@ -188,6 +204,7 @@ class ProtocolUtil(SingletonPerThread):
                 return
             logger.error("Failed to clear wiresever endpoint: {0}", e)
 
+    @trace
     def _detect_protocol(self, save_to_history, init_goal_state=True):
         """
         Probe protocol endpoints in turn.
@@ -235,6 +252,7 @@ class ProtocolUtil(SingletonPerThread):
                 time.sleep(PROBE_INTERVAL)
         raise ProtocolNotFoundError("No protocol found.")
     
+    @trace
     def _save_protocol(self, protocol_name):
         """
         Save protocol endpoint
@@ -245,6 +263,7 @@ class ProtocolUtil(SingletonPerThread):
         except (IOError, OSError) as e:
             logger.error("Failed to save protocol endpoint: {0}", e)
 
+    @trace
     def clear_protocol(self):
         """
         Cleanup previous saved protocol endpoint.
@@ -268,6 +287,7 @@ class ProtocolUtil(SingletonPerThread):
         finally:
             self._lock.release()
 
+    @trace
     def get_protocol(self, init_goal_state=True, save_to_history=False):
         """
         Detect protocol by endpoint.

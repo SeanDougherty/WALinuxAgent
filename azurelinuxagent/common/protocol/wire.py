@@ -63,16 +63,28 @@ MAX_EVENT_BUFFER_SIZE = 2 ** 16 - 2 ** 10
 _DOWNLOAD_TIMEOUT = timedelta(minutes=5)
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
 class UploadError(HttpError):
     pass
 
 
 class WireProtocol(DataContract):
+    @trace
     def __init__(self, endpoint):
         if endpoint is None:
             raise ProtocolError("WireProtocol endpoint is None")
         self.client = WireClient(endpoint)
 
+    @trace
     def detect(self, init_goal_state=True, save_to_history=False):
         self.client.check_wire_protocol_version()
 
@@ -106,6 +118,7 @@ class WireProtocol(DataContract):
     def update_host_plugin_from_goal_state(self):
         self.client.update_host_plugin_from_goal_state()
 
+    @trace
     def get_endpoint(self):
         return self.client.get_endpoint()
 
@@ -402,6 +415,7 @@ def vm_status_to_v1(vm_status):
 
 
 class StatusBlob(object):
+    @trace
     def __init__(self, client):
         self.vm_status = None
         self.client = client
@@ -543,7 +557,7 @@ def event_to_v1_encoded(event, encoding='utf-8'):
 
 
 class WireClient(object):
-
+    @trace
     def __init__(self, endpoint):
         logger.info("Wire server endpoint:{0}", endpoint)
         self._endpoint = endpoint
@@ -551,6 +565,7 @@ class WireClient(object):
         self._host_plugin = None
         self.status_blob = StatusBlob(self)
 
+    @trace
     def get_endpoint(self):
         return self._endpoint
 

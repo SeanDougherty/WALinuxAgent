@@ -31,11 +31,21 @@ class DataContract(object):
     pass
 
 
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
 class DataContractList(list):
+    @trace
     def __init__(self, item_cls):  # pylint: disable=W0231
         self.item_cls = item_cls
 
-
+@trace
 def validate_param(name, val, expected_type):
     if val is None:
         raise ProtocolError("{0} is None".format(name))
@@ -43,7 +53,7 @@ def validate_param(name, val, expected_type):
         raise ProtocolError(("{0} type should be {1} not {2}"
                              "").format(name, expected_type, type(val)))
 
-
+@trace
 def set_properties(name, obj, data):
     if isinstance(obj, DataContract):
         validate_param("Property '{0}'".format(name), data, dict)
@@ -67,7 +77,7 @@ def set_properties(name, obj, data):
     else:
         return data
 
-
+@trace
 def get_properties(obj):
     if isinstance(obj, DataContract):
         data = {}

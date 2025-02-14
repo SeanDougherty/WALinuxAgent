@@ -37,10 +37,23 @@ _LEGACY_METADATA_SERVER_P7B_FILE_NAME = "Certificates.p7b"
 # MetadataServer Endpoint
 _KNOWN_METADATASERVER_IP = "169.254.169.254"
 
+
+# Prints the name of the function before and after it is called
+def trace(func):
+    def wrap_function_with_prints(*args, **kwargs):
+        print(f"Entering: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished: {func.__name__}\n")
+        return result
+    return wrap_function_with_prints
+
+
+@trace
 def is_metadata_server_artifact_present():
     metadata_artifact_path = os.path.join(conf.get_lib_dir(), _LEGACY_METADATA_SERVER_TRANSPORT_CERT_FILE_NAME)
     return os.path.isfile(metadata_artifact_path)
 
+@trace
 def cleanup_metadata_server_artifacts(osutil):
     logger.info("Clean up for MetadataServer to WireServer protocol migration: removing MetadataServer certificates and resetting firewall rules.")
     _cleanup_metadata_protocol_certificates()
