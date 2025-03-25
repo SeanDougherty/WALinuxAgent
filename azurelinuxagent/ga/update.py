@@ -403,13 +403,15 @@ class UpdateHandler(object):
             self._start_threads(all_thread_handlers)
 
             logger.info("Goal State Period: {0} sec. This indicates how often the agent checks for new goal states and reports status.", self._goal_state_period)
-
-            while self.is_running:
+            count = 0
+            # while self.is_running:
+            while count < 1:
                 self._check_daemon_running(debug)
                 self._check_threads_running(all_thread_handlers)
                 self._process_goal_state(exthandlers_handler, remote_access_handler, agent_update_handler)
                 self._send_heartbeat_telemetry(protocol, agent_update_handler)
                 self._check_agent_memory_usage()
+                count = count + 1
                 time.sleep(self._goal_state_period)
 
         except AgentUpgradeExitException as exitException:
