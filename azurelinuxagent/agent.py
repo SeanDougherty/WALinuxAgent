@@ -57,9 +57,9 @@ from azurelinuxagent.pa.provision.default import ProvisionHandler
 # Prints the name of the function before and after it is called
 def trace(func):
     def wrap_function_with_prints(*args, **kwargs):
-        logger.info(f"Entering: {func.__name__}")
+        print(f"Entering: {func.__name__}")
         result = func(*args, **kwargs)
-        logger.info(f"Finished: {func.__name__}\n")
+        print(f"Finished: {func.__name__}\n")
         return result
     return wrap_function_with_prints
 
