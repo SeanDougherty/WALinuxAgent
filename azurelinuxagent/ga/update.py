@@ -242,6 +242,7 @@ class UpdateHandler(object):
                 cwd=agent_dir,
                 stdout=sys.stdout,
                 stderr=sys.stderr,
+                capture_output=True,
                 env=os.environ)
 
             logger.verbose(u"Agent {0} launched with command '{1}'", agent_name, agent_cmd)
