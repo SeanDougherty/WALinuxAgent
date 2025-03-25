@@ -141,9 +141,9 @@ GEN2_DEVICE_ID = 'f8b3781a-1e82-4818-a1c3-63d806ec15bb'
 # Prints the name of the function before and after it is called
 def trace(func):
     def wrap_function_with_prints(*args, **kwargs):
-        print(f"Entering: {func.__name__}")
+        print(f"Entering: {func.__module__} | {func.__qualname__}")
         result = func(*args, **kwargs)
-        print(f"Finished: {func.__name__}\n")
+        print(f"Finished: {func.__module__} | {func.__qualname__}\n")
         return result
     return wrap_function_with_prints
 
