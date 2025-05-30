@@ -540,6 +540,7 @@ class HostPluginProtocol(object):
                 raise ProtocolError(error_description)
 
             for h in response.getheaders():
+                logger.info("Header: {0}: {1}", h[0], h[1])
                 if h[0].lower() == 'etag':
                     response_etag = h[1]
                     break

@@ -387,7 +387,7 @@ class UpdateHandler(object):
 
             # Launch all monitoring threads
             self._start_threads(all_thread_handlers)
-
+            logger.info("Sdou we are logging")
             logger.info("Goal State Period: {0} sec. This indicates how often the agent checks for new goal states and reports status.", self._goal_state_period)
 
             while self.is_running:

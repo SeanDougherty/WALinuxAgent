@@ -96,6 +96,7 @@ class DaemonHandler(object):
             pid = fileutil.read_file(pid_file)
 
         if self.osutil.check_pid_alive(pid):
+            logger.info("Sdou")
             logger.info("Daemon is already running: {0}", pid)
             sys.exit(0)
 
@@ -123,6 +124,7 @@ class DaemonHandler(object):
 
     def daemon(self, child_args=None):
         logger.info("Run daemon")
+        logger.info("Sdou")
 
         self.protocol_util = get_protocol_util()  # pylint: disable=W0201
         self.scvmm_handler = get_scvmm_handler()  # pylint: disable=W0201

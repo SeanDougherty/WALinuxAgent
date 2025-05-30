@@ -471,6 +471,8 @@ class ExtHandlersHandler(object):
         wait_until = datetime.datetime.utcnow() + datetime.timedelta(minutes=_DEFAULT_EXT_TIMEOUT_MINUTES)
 
         all_extensions = self.__get_sorted_extensions_for_processing()
+        logger.info("Handleext")
+        logger.info("Extensions sorted: {0}", all_extensions)
         # Since all_extensions are sorted based on sort_key, the last element would be the maximum based on the sort_key
         max_dep_level = self.__get_dependency_level(all_extensions[-1]) if any(all_extensions) else 0
 
@@ -597,6 +599,7 @@ class ExtHandlersHandler(object):
         :return: True if the operation was successful, False if not
         """
 
+        logger.info("Sdou: Handling ext Handler!")
         try:
             # Ensure the extension config was valid
             if ext_handler_i.ext_handler.is_invalid_setting:
@@ -608,6 +611,8 @@ class ExtHandlersHandler(object):
             # If the extension version is unregistered and the customers wants to uninstall the extension,
             # we should let it go through even if the installed version doesnt exist in Handler manifest (PIR) anymore.
             # If target state is enabled and version not found in manifest, do not process the extension.
+            logger.info("extension settings: {0}", extension)
+
             if ext_handler_i.decide_version(target_state=handler_state,
                                             extension=extension) is None and handler_state == ExtensionRequestedState.Enabled:
                 handler_version = ext_handler_i.ext_handler.version
@@ -1098,7 +1103,7 @@ class ExtHandlerInstance(object):
                                     cleanup_exception)
 
     def decide_version(self, target_state=None, extension=None):
-        self.logger.verbose("Decide which version to use")
+        self.logger.info("Decide which version to use")
         try:
             manifest = self.protocol.get_goal_state().fetch_extension_manifest(self.ext_handler.name, self.ext_handler.manifest_uris)
             pkg_list = manifest.pkg_list
