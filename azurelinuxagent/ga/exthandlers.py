@@ -1126,6 +1126,7 @@ class ExtHandlerInstance(object):
         installed_pkg = None
         pkg_list.versions.sort(key=lambda p: FlexibleVersion(p.version))
         for pkg in pkg_list.versions:
+            logger.info("Sorted: {0}", pkg)
             pkg_version = FlexibleVersion(pkg.version)
             if pkg_version == installed_version:
                 installed_pkg = pkg
