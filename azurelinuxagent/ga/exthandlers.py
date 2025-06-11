@@ -1126,7 +1126,6 @@ class ExtHandlerInstance(object):
         installed_pkg = None
         pkg_list.versions.sort(key=lambda p: FlexibleVersion(p.version))
         for pkg in pkg_list.versions:
-            logger.info("Sorted: {0}", pkg)
             pkg_version = FlexibleVersion(pkg.version)
             if pkg_version == installed_version:
                 installed_pkg = pkg
@@ -1151,7 +1150,7 @@ class ExtHandlerInstance(object):
                 self.ext_handler.version = str(selected_pkg.version)
 
         if self.pkg is not None:
-            self.logger.verbose("Use version: {0}", self.pkg.version)
+            self.logger.info("Use version: {0}", self.pkg.version)
 
         # We reset the logger here incase the handler version changes
         if not requested_version.matches(FlexibleVersion(self.ext_handler.version)):
@@ -1823,6 +1822,7 @@ class ExtHandlerInstance(object):
         try:
             heartbeat_json = fileutil.read_file(heartbeat_file)
             heartbeat = json.loads(heartbeat_json)[0]['heartbeat']
+            logger.info(f"Sdou: heartbeat {heartbeat}")
         except IOError as e:
             raise ExtensionError("Failed to get heartbeat file:{0}".format(e))
         except (ValueError, KeyError) as e:

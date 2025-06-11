@@ -717,7 +717,6 @@ class ExtensionManifest(object):
     def _handle_packages(self, packages, isinternal):
         for package in packages:
             version = findtext(package, "Version")
-            logger.info("Found version: {} in XML", version)
             
             disallow_major_upgrade = findtext(package,
                                               "DisallowMajorVersionUpgrade")

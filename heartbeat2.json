@@ -1,0 +1,817 @@
+{
+  "status": "ready",
+  "code": 0,
+  "formattedMessage": {
+    "lang": "en",
+    "message": {
+      "time": "2025-06-11T21:48:01.251540182Z",
+      "buildNum": "2.29.0-810",
+      "buildDate": "2025-02-21T02:24:37Z",
+      "sourceCommit": "1977471f5a3993cb8afcc23fcaeef09e47ea5606",
+      "lastRestart": "2025-04-28T20:33:46.264873486Z",
+      "systemUUID": "2e162fc7-f3ce-464e-99e9-43320523129e",
+      "containerId": "cfc0cb0e-a797-4335-ab45-8dac69cfb786",
+      "distroId": "azurelinux",
+      "distroVer": "3",
+      "numCPU": 16,
+      "totalRamMB": 64309,
+      "ProductName": "Virtual Machine",
+      "SysVendor": "Microsoft Corporation",
+      "BoardSerial": "0000-0011-0904-6943-9490-1674-54",
+      "architecture": "x86_64",
+      "KernelRelease": "6.6.82.1-1.azl3",
+      "KernelVersion": "#1 SMP PREEMPT_DYNAMIC Wed Apr  2 02:28:07 UTC 2025",
+      "NeedsReboot": "Yes",
+      "LatestInstalledKernelVersion": "6.6.85.1-4.azl3",
+      "packages": [
+        {
+          "name": "azure-security",
+          "version": "2.29.0"
+        },
+        {
+          "name": "azsec-monitor",
+          "version": "2.29.0"
+        },
+        {
+          "name": "auoms",
+          "version": "2.7.0"
+        },
+        {
+          "name": "azsec-clamav",
+          "version": "2.29.0"
+        },
+        {
+          "name": "azsec-mdsd",
+          "version": "Not installed"
+        },
+        {
+          "name": "azure-mdsd",
+          "version": "Not installed"
+        },
+        {
+          "name": "azure-mdsd-clang",
+          "version": "Not installed"
+        },
+        {
+          "name": "azuremonitoragent",
+          "version": "1.35.1"
+        },
+        {
+          "name": "qualys-command-line-agent",
+          "version": "1.5.0"
+        },
+        {
+          "name": "azsec-bpftrace",
+          "version": "2.0.2"
+        },
+        {
+          "name": "clamav",
+          "version": "1.0.7"
+        },
+        {
+          "name": "auditbeat",
+          "version": "Not installed"
+        }
+      ],
+      "services": [
+        {
+          "name": "azsecd",
+          "enabled": true,
+          "status": "running",
+          "cgroups": [
+            {
+              "id": "0",
+              "controllerList": [],
+              "path": "/system.slice/azsecd.service"
+            }
+          ]
+        },
+        {
+          "name": "mdsd",
+          "enabled": false,
+          "status": "not-installed",
+          "cgroups": null
+        },
+        {
+          "name": "mdsdmgr",
+          "enabled": false,
+          "status": "not-installed",
+          "cgroups": null
+        },
+        {
+          "name": "mdsd-coreagent",
+          "enabled": false,
+          "status": "not-installed",
+          "cgroups": null
+        },
+        {
+          "name": "azuremonitoragent",
+          "enabled": false,
+          "status": "disabled",
+          "cgroups": null
+        },
+        {
+          "name": "azuremonitoragentmgr",
+          "enabled": true,
+          "status": "running",
+          "cgroups": [
+            {
+              "id": "0",
+              "controllerList": [],
+              "path": "/system.slice/azuremonitoragentmgr.service"
+            }
+          ]
+        },
+        {
+          "name": "azuremonitor-coreagent",
+          "enabled": true,
+          "status": "running",
+          "cgroups": [
+            {
+              "id": "0",
+              "controllerList": [],
+              "path": "/system.slice/azuremonitor-coreagent.service"
+            }
+          ]
+        },
+        {
+          "name": "auditd",
+          "enabled": true,
+          "status": "running",
+          "cgroups": [
+            {
+              "id": "0",
+              "controllerList": [],
+              "path": "/system.slice/auditd.service"
+            }
+          ]
+        },
+        {
+          "name": "mdatp",
+          "enabled": false,
+          "status": "not-installed",
+          "cgroups": null
+        },
+        {
+          "name": "azsecmond",
+          "enabled": true,
+          "status": "stopped",
+          "cgroups": null
+        },
+        {
+          "name": "auoms",
+          "enabled": false,
+          "status": "not-installed",
+          "cgroups": null
+        }
+      ],
+      "scanners": [
+        {
+          "name": "containerinvscan",
+          "lastScanStart": "2025-06-11T15:22:42.885320217Z",
+          "lastScan": "2025-06-11T15:22:43.585321251Z",
+          "cycle": "PT8H",
+          "options": null
+        },
+        {
+          "name": "rcv",
+          "lastScanStart": "0001-01-01T00:00:00Z",
+          "lastScan": "0001-01-01T00:00:00Z",
+          "cycle": "Disabled",
+          "options": null
+        },
+        {
+          "name": "vsatlsscan",
+          "lastScanStart": "2025-06-11T15:23:45.885758463Z",
+          "lastScan": "2025-06-11T15:23:47.738859742Z",
+          "cycle": "PT12H",
+          "options": [
+            {
+              "name": "TlsScanDisable",
+              "value": "0"
+            },
+            {
+              "name": "ExcludeProcess",
+              "value": "mdsd:29130,29230,29330"
+            },
+            {
+              "name": "ExcludeProcess",
+              "value": "MetricsExtensio:8089,8125,11013,28125"
+            },
+            {
+              "name": "ExcludeProcess",
+              "value": "java:13562"
+            },
+            {
+              "name": "ExcludeProcess",
+              "value": "kube-proxy:"
+            },
+            {
+              "name": "ExcludeProcess",
+              "value": "clarity3dlayout:"
+            }
+          ]
+        },
+        {
+          "name": "antimalware",
+          "lastScanStart": "2025-06-11T15:22:46.677635576Z",
+          "lastScan": "2025-06-11T15:22:46.689787356Z",
+          "cycle": "PT8H",
+          "options": null
+        },
+        {
+          "name": "usergroup",
+          "lastScanStart": "2025-06-11T15:23:43.192245825Z",
+          "lastScan": "2025-06-11T15:23:45.800010047Z",
+          "cycle": "P1D",
+          "options": null
+        },
+        {
+          "name": "docker",
+          "lastScanStart": "2025-06-11T15:23:50.004135689Z",
+          "lastScan": "2025-06-11T15:23:53.987918788Z",
+          "cycle": "P1D",
+          "options": [
+            {
+              "name": "Baseline",
+              "value": "Azure.Docker.Linux"
+            },
+            {
+              "name": "AscBaseline",
+              "value": "OMS.Docker.Linux"
+            }
+          ]
+        },
+        {
+          "name": "clamav",
+          "lastScanStart": "2025-06-11T12:55:24.0949532Z",
+          "lastScan": "2025-06-11T15:20:05.393421624Z",
+          "cycle": "P1D",
+          "options": [
+            {
+              "name": "targetDir",
+              "value": "/bin"
+            },
+            {
+              "name": "targetDir",
+              "value": "/boot"
+            },
+            {
+              "name": "targetDir",
+              "value": "/home"
+            },
+            {
+              "name": "targetDir",
+              "value": "/lib"
+            },
+            {
+              "name": "targetDir",
+              "value": "/lib64"
+            },
+            {
+              "name": "targetDir",
+              "value": "/opt"
+            },
+            {
+              "name": "targetDir",
+              "value": "/root"
+            },
+            {
+              "name": "targetDir",
+              "value": "/sbin"
+            },
+            {
+              "name": "targetDir",
+              "value": "/usr"
+            }
+          ],
+          "cgroupInfo": {
+            "name": "azsec_clamav",
+            "cpupercentagelimit": 20,
+            "cpushareslimit": 2,
+            "memorysoftlimitbytes": 2147483648,
+            "memoryhardlimitbytes": 2147483648,
+            "memoryminbytes": 41943040,
+            "readbytespersecondlimit": 10485760,
+            "readiopersecond": 1000,
+            "BlkioDevicePaths": null
+          }
+        },
+        {
+          "name": "codeintegrity",
+          "lastScanStart": "2025-06-11T15:22:06.482636966Z",
+          "lastScan": "2025-06-11T15:22:42.201096155Z",
+          "cycle": "P1D",
+          "options": null
+        },
+        {
+          "name": "iptables",
+          "lastScanStart": "2025-06-11T15:22:46.703102279Z",
+          "lastScan": "2025-06-11T15:22:46.791858021Z",
+          "cycle": "PT8H",
+          "options": null
+        },
+        {
+          "name": "filescan",
+          "lastScanStart": "2025-06-11T15:22:06.351281433Z",
+          "lastScan": "2025-06-11T15:22:06.394741126Z",
+          "cycle": "PT12H",
+          "options": [
+            {
+              "name": "ConfigFile",
+              "value": "hosts:/etc/hosts"
+            },
+            {
+              "name": "GroupFile",
+              "value": "AuthorizedKeys"
+            }
+          ]
+        },
+        {
+          "name": "software",
+          "lastScanStart": "2025-06-11T15:23:48.379468649Z",
+          "lastScan": "2025-06-11T15:23:49.98765665Z",
+          "cycle": "P1D",
+          "options": [
+            {
+              "name": "IncludePackageInventory",
+              "value": "true"
+            },
+            {
+              "name": "IncludeAvailableUpdates",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "name": "time",
+          "lastScanStart": "2025-06-11T20:55:24.07949873Z",
+          "lastScan": "2025-06-11T20:55:24.29460864Z",
+          "cycle": "PT8H",
+          "options": null
+        },
+        {
+          "name": "certstore",
+          "lastScanStart": "2025-06-11T19:22:06.41702854Z",
+          "lastScan": "2025-06-11T19:22:06.885955594Z",
+          "cycle": "PT4H",
+          "options": null
+        },
+        {
+          "name": "certsinuse",
+          "lastScanStart": "2025-06-11T21:23:50.216030568Z",
+          "lastScan": "2025-06-11T21:23:51.380407752Z",
+          "cycle": "PT30M",
+          "options": null
+        },
+        {
+          "name": "processinvestigator",
+          "lastScanStart": "2025-06-11T15:22:43.685085926Z",
+          "lastScan": "2025-06-11T15:22:46.576147137Z",
+          "cycle": "P1D",
+          "options": null
+        },
+        {
+          "name": "baseline",
+          "lastScanStart": "2025-06-11T15:22:51.185985663Z",
+          "lastScan": "2025-06-11T15:23:43.103378561Z",
+          "cycle": "P1D",
+          "options": [
+            {
+              "name": "Baseline",
+              "value": "Microsoft.Linux"
+            },
+            {
+              "name": "AscBaseline",
+              "value": "ASC.Linux"
+            }
+          ]
+        },
+        {
+          "name": "swpkg",
+          "lastScanStart": "2025-06-11T15:22:46.878434622Z",
+          "lastScan": "2025-06-11T15:22:51.087327821Z",
+          "cycle": "P1D",
+          "options": null
+        },
+        {
+          "name": "kube",
+          "lastScanStart": "2025-06-11T15:23:47.783477572Z",
+          "lastScan": "2025-06-11T15:23:48.291056396Z",
+          "cycle": "P1D",
+          "options": [
+            {
+              "name": "Baseline",
+              "value": "Azure.Kube.Linux"
+            }
+          ]
+        },
+        {
+          "name": "heartbeat",
+          "lastScanStart": "2025-06-11T20:55:41.099405857Z",
+          "lastScan": "2025-06-11T20:55:43.211887448Z",
+          "cycle": "PT1H",
+          "options": null
+        },
+        {
+          "name": "vsanodescan",
+          "lastScanStart": "2025-06-11T15:20:05.690770197Z",
+          "lastScan": "2025-06-11T15:22:06.335420482Z",
+          "cycle": "PT8H",
+          "options": null
+        },
+        {
+          "name": "networksecurityscanner",
+          "lastScanStart": "2025-06-11T11:55:24.088255539Z",
+          "lastScan": "0001-01-01T00:00:00Z",
+          "cycle": "Long-running",
+          "options": null
+        },
+        {
+          "name": "tamperdetector",
+          "lastScanStart": "2025-06-11T12:00:03.061680886Z",
+          "lastScan": "0001-01-01T00:00:00Z",
+          "cycle": "Long-running",
+          "options": null
+        }
+      ],
+      "socketReport": [
+        {
+          "name": "AzSecConfig_MdsdSocketPath",
+          "path": "/var/run/mdsd/asa/default_djson.socket",
+          "isAvailableToConnect": true,
+          "error": ""
+        },
+        {
+          "name": "AzSecMonConf_MdsdSockPath",
+          "path": "/var/run/mdsd/asa/default_djson.socket",
+          "isAvailableToConnect": true,
+          "error": ""
+        },
+        {
+          "name": "AzSecMonConf_MdsdFluentSockPath",
+          "path": "/var/run/mdsd/asa/default_fluent.socket",
+          "isAvailableToConnect": true,
+          "error": ""
+        },
+        {
+          "name": "AzSecMonConf_AuomsSockPath",
+          "path": "/var/run/azsecmon/azsecmond.socket",
+          "isAvailableToConnect": false,
+          "error": "dial unix /var/run/azsecmon/azsecmond.socket: connect: no such file or directory"
+        }
+      ],
+      "autoconfigInfo": {
+        "enabled": true,
+        "mdsdTenantStatus": "running",
+        "selectedMSI": "AutoConfig",
+        "gigModeEnabled": false,
+        "gigModeMinMdsdVer": "9999.9999.9999"
+      },
+      "azResourceProperties": {
+        "azEnvironment": "AzurePublicCloud",
+        "subscriptionId": "b8f169b2-5b23-444a-ae4b-19a31b5e3652",
+        "resourceGroupName": "sdougherty-eastus",
+        "location": "WestUS3",
+        "name": "elm",
+        "vmScaleSetName": "",
+        "vmSize": "Standard_D16s_v6",
+        "AzResourceType": "Azure",
+        "isAzConnectedResource": false,
+        "hasDefaultMSIToken": true,
+        "hasAzSecPackIdentity": true,
+        "resourceTags": [
+          {
+            "name": "AzSecPack",
+            "value": "nonprod",
+            "isPresent": true
+          },
+          {
+            "name": "SBI",
+            "isPresent": false
+          },
+          {
+            "name": "SBIVersion",
+            "isPresent": false
+          },
+          {
+            "name": "AzSecPackAutoConfigReady",
+            "isPresent": false
+          },
+          {
+            "name": "AzSecPackRequiredRedactRuleState",
+            "isPresent": false
+          },
+          {
+            "name": "RetainSyslogCollection",
+            "isPresent": false
+          },
+          {
+            "name": "SkipASMAzSecPack",
+            "isPresent": false
+          },
+          {
+            "name": "SkipLinuxAzSecPack",
+            "isPresent": false
+          },
+          {
+            "name": "SkipASMAzSecPackAutoConfig",
+            "isPresent": false
+          },
+          {
+            "name": "aks-managed-poolName",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackEnableGIG",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackDisableGIG",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackEnableNetSecMon",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackDisableNetSecMon",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxASADisableDaemonInstall",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackEnableTamperDetection",
+            "isPresent": false
+          },
+          {
+            "name": "LinuxAzSecPackDisableTamperDetection",
+            "isPresent": false
+          },
+          {
+            "name": "CustomAzSecPackIdentity_ResourceId",
+            "isPresent": false
+          },
+          {
+            "name": "CustomAzSecPackIdentity_ClientId",
+            "isPresent": false
+          },
+          {
+            "name": "CustomAzSecPackIdentity_ObjectId",
+            "isPresent": false
+          }
+        ],
+        "vmextensions": [
+          {
+            "name": "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent",
+            "version": "2.29.810",
+            "installPath": "/var/lib/waagent/Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent-2.29.810",
+            "publicSettings": "enableAutoConfig:true enableGenevaUpload:true reportSuccessOnUnsupportedDistro:true",
+            "isInstalled": true,
+            "autoUpgradeMinorVersion": false,
+            "error": ""
+          },
+          {
+            "name": "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent",
+            "version": "1.35.1",
+            "installPath": "/var/lib/waagent/Microsoft.Azure.Monitor.AzureMonitorLinuxAgent-1.35.1",
+            "publicSettings": "GCS_AUTO_CONFIG:true",
+            "isInstalled": true,
+            "autoUpgradeMinorVersion": false,
+            "error": ""
+          }
+        ],
+        "imageReference": {
+          "publisher": "MicrosoftCBLMariner",
+          "offer": "azure-linux-3",
+          "sku": "azure-linux-3-gen2",
+          "version": "latest"
+        }
+      },
+      "azSecPackCustomerScenario": [
+        "FirstParty"
+      ],
+      "serviceMetrics": [
+        {
+          "name": "azsecd",
+          "reports": [
+            {
+              "pid": 320793,
+              "start": "2025-06-11T11:51:42.279154577Z",
+              "end": "2025-06-11T11:51:42.279342506Z",
+              "numSamples": 1,
+              "avgVirtSize": 1516986368,
+              "maxVirtSize": 1516986368,
+              "avgRss": 28049408,
+              "MaxRss": 28049408
+            },
+            {
+              "pid": 322589,
+              "start": "2025-06-11T11:54:56.259193031Z",
+              "end": "2025-06-11T11:54:56.322282978Z",
+              "numSamples": 1,
+              "avgVirtSize": 1440960512,
+              "maxVirtSize": 1440960512,
+              "avgRss": 27656192,
+              "MaxRss": 27656192
+            },
+            {
+              "pid": 323723,
+              "start": "2025-06-11T11:55:24.042996893Z",
+              "end": "2025-06-11T11:55:24.043110366Z",
+              "numSamples": 1,
+              "avgVirtSize": 1516724224,
+              "maxVirtSize": 1516724224,
+              "avgRss": 27918336,
+              "MaxRss": 27918336
+            }
+          ]
+        },
+        {
+          "name": "azsec-bpftrace",
+          "reports": [
+            {
+              "pid": 323757,
+              "start": "2025-06-11T17:55:24.090111783Z",
+              "end": "2025-06-11T18:55:24.090099754Z",
+              "numSamples": 60,
+              "avgPctUser": 0.01277777781892932,
+              "maxPctUser": 0.03333333333333333,
+              "avgPctSystem": 0.016666666720342595,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.029444444539271912,
+              "maxPctTotal": 0.05,
+              "avgVirtSize": 443207680,
+              "maxVirtSize": 443207680,
+              "avgRss": 171089920,
+              "MaxRss": 171089920
+            },
+            {
+              "pid": 323757,
+              "start": "2025-06-11T18:55:24.090099754Z",
+              "end": "2025-06-11T19:55:24.09012827Z",
+              "numSamples": 60,
+              "avgPctUser": 0.009722222145011575,
+              "maxPctUser": 0.0333324174201676,
+              "avgPctSystem": 0.01972222206559491,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.029444444210606484,
+              "maxPctTotal": 0.05,
+              "avgVirtSize": 443207680,
+              "maxVirtSize": 443207680,
+              "avgRss": 171089920,
+              "MaxRss": 171089920
+            },
+            {
+              "pid": 323757,
+              "start": "2025-06-11T19:55:24.09012827Z",
+              "end": "2025-06-11T20:55:24.090136466Z",
+              "numSamples": 60,
+              "avgPctUser": 0.01027777775817577,
+              "maxPctUser": 0.03333310528767127,
+              "avgPctSystem": 0.019166666630111573,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.029444444388287347,
+              "maxPctTotal": 0.05,
+              "avgVirtSize": 443207680,
+              "maxVirtSize": 443207680,
+              "avgRss": 171089920,
+              "MaxRss": 171089920
+            }
+          ]
+        },
+        {
+          "name": "tamperdetector",
+          "reports": [
+            {
+              "pid": 324988,
+              "start": "2025-06-11T18:00:03.065791807Z",
+              "end": "2025-06-11T19:00:03.065124927Z",
+              "numSamples": 60,
+              "avgPctUser": 0.00277777829179099,
+              "maxPctUser": 0.016666666666666666,
+              "avgPctSystem": 0.000277777829179099,
+              "maxPctSystem": 0.016666666666666666,
+              "avgPctTotal": 0.003055556120970089,
+              "maxPctTotal": 0.016666666666666666,
+              "avgVirtSize": 1744343040,
+              "maxVirtSize": 1744343040,
+              "avgRss": 26872490,
+              "MaxRss": 26959872
+            },
+            {
+              "pid": 324988,
+              "start": "2025-06-11T19:00:03.065124927Z",
+              "end": "2025-06-11T20:00:03.064649343Z",
+              "numSamples": 60,
+              "avgPctUser": 0.002222222516949422,
+              "maxPctUser": 0.016666666666666666,
+              "avgPctSystem": 0.0008333334438560331,
+              "maxPctSystem": 0.016666666666666666,
+              "avgPctTotal": 0.0030555559608054553,
+              "maxPctTotal": 0.016666666666666666,
+              "avgVirtSize": 1744343040,
+              "maxVirtSize": 1744343040,
+              "avgRss": 27212458,
+              "MaxRss": 27353088
+            },
+            {
+              "pid": 324988,
+              "start": "2025-06-11T20:00:03.064649343Z",
+              "end": "2025-06-11T21:00:03.065498451Z",
+              "numSamples": 60,
+              "avgPctUser": 0.0027777771234993825,
+              "maxPctUser": 0.016666666666666666,
+              "avgPctSystem": 0.00027777771234993825,
+              "maxPctSystem": 0.016666547061691663,
+              "avgPctTotal": 0.003055554835849321,
+              "maxPctTotal": 0.016666666666666666,
+              "avgVirtSize": 1744343040,
+              "maxVirtSize": 1744343040,
+              "avgRss": 27161122,
+              "MaxRss": 27205632
+            }
+          ]
+        },
+        {
+          "name": "tamperdetect-bpftrace",
+          "reports": [
+            {
+              "pid": 324998,
+              "start": "2025-06-11T18:00:03.065951449Z",
+              "end": "2025-06-11T19:00:03.065278535Z",
+              "numSamples": 60,
+              "avgPctUser": 0.007777779224535455,
+              "maxPctUser": 0.03333333333333333,
+              "avgPctSystem": 0.02027778154968172,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.028055560774217173,
+              "maxPctTotal": 0.05,
+              "avgVirtSize": 428249088,
+              "maxVirtSize": 428249088,
+              "avgRss": 154566656,
+              "MaxRss": 154566656
+            },
+            {
+              "pid": 324998,
+              "start": "2025-06-11T19:00:03.065278535Z",
+              "end": "2025-06-11T20:00:03.06469859Z",
+              "numSamples": 60,
+              "avgPctUser": 0.008055556862406308,
+              "maxPctUser": 0.03333333333333333,
+              "avgPctSystem": 0.019722225421753375,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.027777782284159683,
+              "maxPctTotal": 0.049999628784422705,
+              "avgVirtSize": 428249088,
+              "maxVirtSize": 428249088,
+              "avgRss": 154566656,
+              "MaxRss": 154566656
+            },
+            {
+              "pid": 324998,
+              "start": "2025-06-11T20:00:03.06469859Z",
+              "end": "2025-06-11T21:00:03.065466793Z",
+              "numSamples": 60,
+              "avgPctUser": 0.010555553302502024,
+              "maxPctUser": 0.03333333333333333,
+              "avgPctSystem": 0.017499996264674408,
+              "maxPctSystem": 0.03333333333333333,
+              "avgPctTotal": 0.02805554956717643,
+              "maxPctTotal": 0.05,
+              "avgVirtSize": 428249088,
+              "maxVirtSize": 428249088,
+              "avgRss": 154566656,
+              "MaxRss": 154566656
+            }
+          ]
+        }
+      ],
+      "warnings": [
+        "MaRunTaskLocal tagged data for event LinuxAsmAudit has not been sent to MDSD in the last 59.7 hours",
+        "Failed to read metrics for \"azsecmond\": unexpected end of JSON input"
+      ],
+      "errors": [
+        "Required service is not running: azsecmond",
+        "Required service is not running: auoms",
+        "Required service is not enabled: auoms"
+      ],
+      "cgroupEnforceLimits": true,
+      "cgroupInfo": {
+        "name": "azsec",
+        "cpupercentagelimit": 20,
+        "cpushareslimit": 5,
+        "memorysoftlimitbytes": 536870912,
+        "memoryhardlimitbytes": 1073741824,
+        "memoryminbytes": 41943040,
+        "readbytespersecondlimit": 10485760,
+        "readiopersecond": 1000,
+        "BlkioDevicePaths": [
+          "/dev/sda"
+        ]
+      }
+    }
+  }
+}
